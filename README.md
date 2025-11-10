@@ -73,13 +73,14 @@ Bu proje, bir e-ticaret sistemi için tam özellikli microservices mimarisini i�
 - [x] API Documentation (Swagger/OpenAPI)
 - [x] Health Checks (Actuator)
 - [x] Distributed Tracing (Micrometer Tracing + Zipkin)
+- [x] Docker & Docker Compose
 - [x] Global Exception Handling
 - [x] Comprehensive Testing
 
 ### 🚧 Eksik Özellikler
 
 - [x] Distributed Tracing (Micrometer Tracing + Zipkin) ✅
-- [ ] Docker & Docker Compose
+- [x] Docker & Docker Compose ✅
 - [ ] Kubernetes Deployment
 - [ ] Security (JWT Authentication)
 - [ ] Logging & Monitoring (ELK Stack)
@@ -90,13 +91,39 @@ Bu proje, bir e-ticaret sistemi için tam özellikli microservices mimarisini i�
 
 ### Gereksinimler
 
+**Docker ile (Önerilen):**
+- Docker Desktop
+- Docker Compose
+
+**Manuel Kurulum:**
 - Java 17 veya üzeri
 - Maven 3.6+
 - PostgreSQL 12+
 - RabbitMQ
 - Redis (Rate Limiting için)
 
-### Adımlar
+### Docker ile Kurulum (Önerilen)
+
+**Tek komutla tüm sistemi başlatın:**
+```bash
+docker-compose up -d
+```
+
+Bu komut şunları başlatır:
+- ✅ PostgreSQL (5 database ile)
+- ✅ RabbitMQ
+- ✅ Redis
+- ✅ Zipkin
+- ✅ Tüm microservice'ler
+
+**Servisleri durdurmak için:**
+```bash
+docker-compose down
+```
+
+**Detaylı bilgi:** `DOCKER_GUIDE.md`
+
+### Manuel Kurulum
 
 1. **PostgreSQL Veritabanlarını Oluşturun:**
    ```bash
@@ -105,13 +132,11 @@ Bu proje, bir e-ticaret sistemi için tam özellikli microservices mimarisini i�
 
 2. **RabbitMQ'yu Başlatın:**
    ```bash
-   # Docker ile
    docker run -d -p 5672:5672 -p 15672:15672 --name rabbitmq rabbitmq:3-management
    ```
 
 3. **Redis'i Başlatın:**
    ```bash
-   # Docker ile
    docker run -d -p 6379:6379 --name redis redis:alpine
    ```
 

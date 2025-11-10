@@ -75,13 +75,6 @@
             <version>7.4</version>
         </dependency>
 
-        <!-- WebSocket Support -->
-        <!-- Real-time order tracking için -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-
         <!-- Lombok -->
         <!-- Boilerplate kod azaltmak için -->
         <dependency>

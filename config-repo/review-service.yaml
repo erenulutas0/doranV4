@@ -1,0 +1,19 @@
+# ============================================
+# Review Service Yapılandırması
+# ============================================
+
+server:
+  port: 8087
+
+spring:
+  application:
+    name: review-service
+  datasource:
+    url: jdbc:postgresql://postgres:5432/review_db
+
+springdoc:
+  info:
+    title: Review Service API
+    description: Review Management Microservice - Ürün yorumları ve değerlendirmeleri API dokümantasyonu
+    version: 1.0.0
+

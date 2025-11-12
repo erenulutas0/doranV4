@@ -78,23 +78,6 @@ class ProductDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Category
-                  if (product.category != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        product.category!,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 12),
-
                   // Product Name
                   Text(
                     product.name,
@@ -102,27 +85,72 @@ class ProductDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Rating
-                  if (product.rating != null)
-                    Row(
+                  // Rating Section - Geliştirilmiş
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        RatingBarIndicator(
-                          rating: product.rating!,
-                          itemBuilder: (context, index) => const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                          itemCount: 5,
-                          itemSize: 20,
-                        ),
-                        const SizedBox(width: 8),
                         Text(
-                          '${product.rating} (${product.reviewCount ?? 0} reviews)',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          'Ürün Değerlendirmesi',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            // Büyük rating gösterimi
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.rating != null ? '${product.rating!.toStringAsFixed(1)}' : '0.0',
+                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                                RatingBarIndicator(
+                                  rating: product.rating ?? 0.0,
+                                  itemBuilder: (context, index) => const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                  ),
+                                  itemCount: 5,
+                                  itemSize: 24,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${product.reviewCount ?? 0} Değerlendirme',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            // Yıldız dağılımı (opsiyonel - gelecekte eklenebilir)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                _buildStarDistribution(5, 85, context),
+                                _buildStarDistribution(4, 10, context),
+                                _buildStarDistribution(3, 3, context),
+                                _buildStarDistribution(2, 1, context),
+                                _buildStarDistribution(1, 1, context),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  const SizedBox(height: 16),
+                  ),
+                  const SizedBox(height: 24),
 
                   // Price
                   Row(
@@ -161,40 +189,13 @@ class ProductDetailPage extends StatelessWidget {
                     const SizedBox(height: 24),
                   ],
 
-                  // Stock Info
-                  if (product.stockQuantity != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: product.stockQuantity! > 0
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            product.stockQuantity! > 0
-                                ? Icons.check_circle_outline
-                                : Icons.cancel_outlined,
-                            color: product.stockQuantity! > 0
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            product.stockQuantity! > 0
-                                ? 'In Stock (${product.stockQuantity} available)'
-                                : 'Out of Stock',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: product.stockQuantity! > 0
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  // Product Reviews Section
+                  _buildReviewsSection(context, product),
+                  const SizedBox(height: 24),
+
+                  // Payment Options Section
+                  _buildPaymentOptionsSection(context),
+                  const SizedBox(height: 100), // Bottom navigation için boşluk
                 ],
               ),
             ),
@@ -228,17 +229,15 @@ class ProductDetailPage extends StatelessWidget {
                 child: Consumer<CartProvider>(
                   builder: (context, cartProvider, child) {
                     return ElevatedButton(
-                      onPressed: product.stockQuantity != null && product.stockQuantity! > 0
-                          ? () {
-                              cartProvider.addItem(product);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Product added to cart'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          : null,
+                      onPressed: () {
+                        cartProvider.addItem(product);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Product added to cart'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
                       child: const Text('Add to Cart'),
                     );
                   },
@@ -247,6 +246,289 @@ class ProductDetailPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStarDistribution(int stars, int percentage, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$stars',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(width: 4),
+          const Icon(Icons.star, size: 12, color: Colors.amber),
+          const SizedBox(width: 8),
+          Container(
+            width: 60,
+            height: 6,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: percentage / 100,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.amber,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewsSection(BuildContext context, product) {
+    // Örnek yorumlar (gerçek veri gelecekte API'den gelecek)
+    final reviews = [
+      {
+        'userName': 'Ahmet Yılmaz',
+        'rating': 5.0,
+        'comment': 'Harika bir ürün! Çok memnun kaldım. Kesinlikle tavsiye ederim.',
+        'date': '2 gün önce',
+      },
+      {
+        'userName': 'Ayşe Demir',
+        'rating': 4.0,
+        'comment': 'Güzel ürün ama fiyat biraz yüksek. Yine de kaliteli.',
+        'date': '1 hafta önce',
+      },
+      {
+        'userName': 'Mehmet Kaya',
+        'rating': 5.0,
+        'comment': 'Mükemmel! Beklentilerimi aştı. Hızlı teslimat da harika.',
+        'date': '2 hafta önce',
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Ürün Yorumları',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                // Tüm yorumları görüntüle
+              },
+              child: const Text('Tümünü Gör'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...reviews.map((review) => _buildReviewCard(context, review)),
+      ],
+    );
+  }
+
+  Widget _buildReviewCard(BuildContext context, Map<String, dynamic> review) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Kullanıcı avatarı
+              CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                radius: 20,
+                child: Text(
+                  review['userName'][0].toUpperCase(),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      review['userName'],
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        RatingBarIndicator(
+                          rating: review['rating'].toDouble(),
+                          itemBuilder: (context, index) => const Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                            size: 14,
+                          ),
+                          itemCount: 5,
+                          itemSize: 14,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          review['date'],
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            review['comment'],
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentOptionsSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.payment,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Ödeme Seçenekleri',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Kredi/Banka Kartı
+          _buildPaymentOption(
+            context,
+            icon: Icons.credit_card,
+            title: 'Kredi/Banka Kartı',
+            subtitle: 'Visa, Mastercard, Troy',
+            isAvailable: true,
+          ),
+          const SizedBox(height: 12),
+          // Kapıda Ödeme
+          _buildPaymentOption(
+            context,
+            icon: Icons.money,
+            title: 'Kapıda Ödeme',
+            subtitle: 'Teslimat sırasında nakit veya kart ile ödeme',
+            isAvailable: true,
+          ),
+          const SizedBox(height: 12),
+          // Taksit Seçenekleri
+          _buildPaymentOption(
+            context,
+            icon: Icons.calendar_today,
+            title: 'Taksit Seçenekleri',
+            subtitle: '2-12 ay arası taksit imkanı',
+            isAvailable: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isAvailable,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: Theme.of(context).colorScheme.primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isAvailable)
+            Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 20,
+            ),
+        ],
       ),
     );
   }

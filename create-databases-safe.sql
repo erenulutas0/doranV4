@@ -68,11 +68,22 @@ BEGIN
             CONNECTION LIMIT = -1;
         COMMENT ON DATABASE notification_db IS 'Notification Service için veritabanı - Bildirim yönetimi';
     END IF;
+
+    -- Review Service Database
+    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'review_db') THEN
+        CREATE DATABASE review_db
+            WITH 
+            OWNER = postgres
+            ENCODING = 'UTF8'
+            TABLESPACE = pg_default
+            CONNECTION LIMIT = -1;
+        COMMENT ON DATABASE review_db IS 'Review Service için veritabanı - Ürün yorumları ve değerlendirmeleri';
+    END IF;
 END $$;
 
 -- Veritabanlarını listele
 SELECT datname, pg_size_pretty(pg_database_size(datname)) as size 
 FROM pg_database 
-WHERE datname IN ('user_db', 'product_db', 'order_db', 'inventory_db', 'notification_db') 
+WHERE datname IN ('user_db', 'product_db', 'order_db', 'inventory_db', 'notification_db', 'review_db') 
 ORDER BY datname;
 

@@ -142,6 +142,25 @@ spring:
               args:
                 name: notificationServiceCircuitBreaker
                 fallbackUri: forward:/fallback/notification
+        
+        # Review Service route
+        - id: review-service
+          uri: lb://review-service
+          predicates:
+            - Path=/api/reviews/**
+          filters:
+            - StripPrefix=1  # /api kısmını çıkarır
+            # Rate Limiting (Review Service için özel limit)
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 30  # Review service için yüksek limit (okuma yoğun)
+                redis-rate-limiter.burstCapacity: 60
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: reviewServiceCircuitBreaker
+                fallbackUri: forward:/fallback/review
 
 # Eureka yapılandırması
 eureka:
@@ -175,6 +194,8 @@ resilience4j:
       inventoryServiceCircuitBreaker:
         baseConfig: default
       notificationServiceCircuitBreaker:
+        baseConfig: default
+      reviewServiceCircuitBreaker:
         baseConfig: default
 
 # Actuator endpoints (Monitoring için)

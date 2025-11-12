@@ -31,6 +31,11 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+  
+  # Jackson JSON serialization ayarları
+  jackson:
+    default-property-inclusion: always  # Null değerleri de serialize et
+    property-naming-strategy: LOWER_CAMEL_CASE
 
 # Eureka yapılandırması
 eureka:

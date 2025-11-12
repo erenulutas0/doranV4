@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
@@ -17,6 +19,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Product Entity
@@ -132,6 +135,32 @@ public class Product {
      * - Soft delete için kullanılabilir
      */
     private Boolean isActive = true;
+    
+    /**
+     * Ortalama Rating (Review-service'den senkronize edilir)
+     * - Opsiyonel alan
+     * - 0.0 - 5.0 arası değer
+     * - Review-service'den periyodik olarak güncellenir
+     */
+    @JsonProperty("averageRating")
+    @Setter
+    private BigDecimal averageRating;
+    
+    /**
+     * Toplam Yorum Sayısı (Review-service'den senkronize edilir)
+     * - Opsiyonel alan
+     * - Review-service'den periyodik olarak güncellenir
+     */
+    @JsonProperty("reviewCount")
+    @Setter
+    private Integer reviewCount;
+    
+    /**
+     * Son Rating Senkronizasyon Tarihi
+     * - Review-service'den ne zaman güncellendiğini takip eder
+     */
+    @Setter
+    private LocalDateTime lastRatingSync;
     
     /**
      * Oluşturulma Tarihi

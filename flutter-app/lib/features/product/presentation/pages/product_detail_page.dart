@@ -7,8 +7,11 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../../../../core/providers/product_provider.dart';
 import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/utils/price_formatter.dart';
+import '../../../../core/services/api_service.dart';
+import '../../../../core/models/review_model.dart';
+import '../../../../core/models/rating_summary_model.dart';
 
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends StatefulWidget {
   final String productId;
 
   const ProductDetailPage({
@@ -17,9 +20,71 @@ class ProductDetailPage extends StatelessWidget {
   });
 
   @override
+  State<ProductDetailPage> createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  final ApiService _apiService = ApiService();
+  List<Review> _reviews = [];
+  RatingSummary? _ratingSummary;
+  bool _isLoadingReviews = true;
+  String? _reviewsError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviewsAndRating();
+  }
+
+  Future<void> _loadReviewsAndRating() async {
+    setState(() {
+      _isLoadingReviews = true;
+      _reviewsError = null;
+    });
+
+    try {
+      final reviews = await _apiService.getReviewsByProductId(widget.productId);
+      final ratingSummary = await _apiService.getRatingSummary(widget.productId);
+      
+      setState(() {
+        _reviews = reviews;
+        _ratingSummary = ratingSummary;
+        _isLoadingReviews = false;
+      });
+    } catch (e) {
+      setState(() {
+        _reviewsError = e.toString();
+        _isLoadingReviews = false;
+      });
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Bugün';
+    } else if (difference.inDays == 1) {
+      return 'Dün';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} gün önce';
+    } else if (difference.inDays < 30) {
+      final weeks = (difference.inDays / 7).floor();
+      return '$weeks hafta önce';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ay önce';
+    } else {
+      final years = (difference.inDays / 365).floor();
+      return '$years yıl önce';
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final productProvider = context.watch<ProductProvider>();
-    final product = productProvider.getProductById(productId);
+    final product = productProvider.getProductById(widget.productId);
 
     if (product == null) {
       return Scaffold(
@@ -134,15 +199,15 @@ class ProductDetailPage extends StatelessWidget {
                               ],
                             ),
                             const Spacer(),
-                            // Yıldız dağılımı (opsiyonel - gelecekte eklenebilir)
+                            // Yıldız dağılımı (database'den gelen veriler - her zaman göster)
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                _buildStarDistribution(5, 85, context),
-                                _buildStarDistribution(4, 10, context),
-                                _buildStarDistribution(3, 3, context),
-                                _buildStarDistribution(2, 1, context),
-                                _buildStarDistribution(1, 1, context),
+                                _buildStarDistribution(5, _ratingSummary?.getStarPercentage(5) ?? 0.0, context),
+                                _buildStarDistribution(4, _ratingSummary?.getStarPercentage(4) ?? 0.0, context),
+                                _buildStarDistribution(3, _ratingSummary?.getStarPercentage(3) ?? 0.0, context),
+                                _buildStarDistribution(2, _ratingSummary?.getStarPercentage(2) ?? 0.0, context),
+                                _buildStarDistribution(1, _ratingSummary?.getStarPercentage(1) ?? 0.0, context),
                               ],
                             ),
                           ],
@@ -250,7 +315,7 @@ class ProductDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStarDistribution(int stars, int percentage, BuildContext context) {
+  Widget _buildStarDistribution(int stars, double percentage, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -287,28 +352,6 @@ class ProductDetailPage extends StatelessWidget {
   }
 
   Widget _buildReviewsSection(BuildContext context, product) {
-    // Örnek yorumlar (gerçek veri gelecekte API'den gelecek)
-    final reviews = [
-      {
-        'userName': 'Ahmet Yılmaz',
-        'rating': 5.0,
-        'comment': 'Harika bir ürün! Çok memnun kaldım. Kesinlikle tavsiye ederim.',
-        'date': '2 gün önce',
-      },
-      {
-        'userName': 'Ayşe Demir',
-        'rating': 4.0,
-        'comment': 'Güzel ürün ama fiyat biraz yüksek. Yine de kaliteli.',
-        'date': '1 hafta önce',
-      },
-      {
-        'userName': 'Mehmet Kaya',
-        'rating': 5.0,
-        'comment': 'Mükemmel! Beklentilerimi aştı. Hızlı teslimat da harika.',
-        'date': '2 hafta önce',
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -321,21 +364,54 @@ class ProductDetailPage extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            TextButton(
-              onPressed: () {
-                // Tüm yorumları görüntüle
-              },
-              child: const Text('Tümünü Gör'),
-            ),
+            if (_reviews.isNotEmpty)
+              TextButton(
+                onPressed: () {
+                  // Tüm yorumları görüntüle
+                },
+                child: const Text('Tümünü Gör'),
+              ),
           ],
         ),
         const SizedBox(height: 12),
-        ...reviews.map((review) => _buildReviewCard(context, review)),
+        if (_isLoadingReviews)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: CircularProgressIndicator(),
+            ),
+          )
+        else if (_reviewsError != null)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Text(
+                'Yorumlar yüklenemedi',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+            ),
+          )
+        else if (_reviews.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Text(
+                'Henüz yorum yok',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ),
+          )
+        else
+          ..._reviews.take(5).map((review) => _buildReviewCard(context, review)),
       ],
     );
   }
 
-  Widget _buildReviewCard(BuildContext context, Map<String, dynamic> review) {
+  Widget _buildReviewCard(BuildContext context, Review review) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -357,7 +433,7 @@ class ProductDetailPage extends StatelessWidget {
                 backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                 radius: 20,
                 child: Text(
-                  review['userName'][0].toUpperCase(),
+                  review.userName.isNotEmpty ? review.userName[0].toUpperCase() : '?',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -370,7 +446,7 @@ class ProductDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review['userName'],
+                      review.userName,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -379,7 +455,7 @@ class ProductDetailPage extends StatelessWidget {
                     Row(
                       children: [
                         RatingBarIndicator(
-                          rating: review['rating'].toDouble(),
+                          rating: review.rating.toDouble(),
                           itemBuilder: (context, index) => const Icon(
                             Icons.star,
                             color: Colors.amber,
@@ -390,7 +466,7 @@ class ProductDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          review['date'],
+                          _formatDate(review.createdAt),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                           ),
@@ -402,17 +478,21 @@ class ProductDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            review['comment'],
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          if (review.comment != null && review.comment!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              review.comment!,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildPaymentOptionsSection(BuildContext context) {
+    // Payment options database'den gelecek (şimdilik boş gösteriyoruz)
+    // TODO: Product-service'den payment options çekilecek
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -439,95 +519,19 @@ class ProductDetailPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // Kredi/Banka Kartı
-          _buildPaymentOption(
-            context,
-            icon: Icons.credit_card,
-            title: 'Kredi/Banka Kartı',
-            subtitle: 'Visa, Mastercard, Troy',
-            isAvailable: true,
-          ),
-          const SizedBox(height: 12),
-          // Kapıda Ödeme
-          _buildPaymentOption(
-            context,
-            icon: Icons.money,
-            title: 'Kapıda Ödeme',
-            subtitle: 'Teslimat sırasında nakit veya kart ile ödeme',
-            isAvailable: true,
-          ),
-          const SizedBox(height: 12),
-          // Taksit Seçenekleri
-          _buildPaymentOption(
-            context,
-            icon: Icons.calendar_today,
-            title: 'Taksit Seçenekleri',
-            subtitle: '2-12 ay arası taksit imkanı',
-            isAvailable: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentOption(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool isAvailable,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+          // Payment options database'den gelecek
+          // Şimdilik bilgi mesajı gösteriyoruz
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Ödeme seçenekleri yakında eklenecek',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-          if (isAvailable)
-            Icon(
-              Icons.check_circle,
-              color: Colors.green,
-              size: 20,
-            ),
         ],
       ),
     );

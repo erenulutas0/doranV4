@@ -42,7 +42,7 @@ class Product {
           : json['stockQuantity'] != null 
               ? int.tryParse(json['stockQuantity'].toString())
               : null,
-      rating: json['rating']?.toDouble(),
+      rating: json['rating']?.toDouble() ?? json['averageRating']?.toDouble(),
       reviewCount: json['reviewCount'] is int 
           ? json['reviewCount'] as int
           : json['reviewCount'] != null 

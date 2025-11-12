@@ -30,19 +30,19 @@ class ProductGrid extends StatelessWidget {
     
     if (isSmallPhone) {
       // iPhone SE gibi çok küçük ekranlar (375px)
-      horizontalPadding = 12.0; // Yanlara nefes alacak boşluk
-      gridSpacing = 8.0; // Ürünler arası boşluk
-      childAspectRatio = 0.68; // Boş alanı kaldırmak için daha kompakt
+      horizontalPadding = 12.0;
+      gridSpacing = 8.0;
+      childAspectRatio = 0.60; // Overflow'u önlemek için daha küçük
     } else if (isMobile) {
-      // Normal mobil (400-600px)
+      // Normal mobil (400-600px) - iPhone 14 Pro Max dahil
       horizontalPadding = 16.0;
       gridSpacing = 10.0;
-      childAspectRatio = 0.72; // Boş alanı kaldırmak için daha kompakt
+      childAspectRatio = 0.62; // iPhone 14 Pro Max için daha agresif optimizasyon
     } else {
       // Tablet/Desktop
       horizontalPadding = 20.0;
       gridSpacing = 16.0;
-      childAspectRatio = 0.76; // Boş alanı kaldırmak için daha kompakt
+      childAspectRatio = 0.68; // Overflow'u önlemek için daha küçük
     }
     
     return SliverPadding(
@@ -318,63 +318,119 @@ class _ProductCardState extends State<_ProductCard>
           ),
         ),
 
-        // Product Info - Kompakt padding, daha fazla ürün görünsün
-        Flexible(
+        // Product Info - Overflow'u önlemek için Expanded ve maksimum kompakt yapı
+        Expanded(
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              widget.isSmallPhone ? 8 : widget.isMobile ? 10 : 12, // Sol padding optimize edildi
-              widget.isSmallPhone ? 4 : widget.isMobile ? 5 : 6, // Üst padding azaltıldı
+              widget.isSmallPhone ? 8 : widget.isMobile ? 10 : 12,
+              widget.isSmallPhone ? 3 : widget.isMobile ? 3 : 4, // Üst padding daha da azaltıldı
               widget.isSmallPhone ? 6 : widget.isMobile ? 8 : 10,
-              widget.isSmallPhone ? 4 : widget.isMobile ? 5 : 6, // Alt padding normal
+              widget.isSmallPhone ? 3 : widget.isMobile ? 3 : 4, // Alt padding daha da azaltıldı
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, // Minimum alan kullan
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-              // Product Name - Düzeltilmiş yazı stili
-              Text(
-                widget.product.name,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize: widget.isSmallPhone ? 13 : widget.isMobile ? 14 : 15,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
-                  letterSpacing: 0.1,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              // Description - Düzeltilmiş yazı stili
-              if (widget.product.description != null && widget.product.description!.isNotEmpty && !widget.isSmallPhone) ...[
-                SizedBox(height: widget.isSmallPhone ? 3 : widget.isMobile ? 4 : 5),
-                Text(
-                  widget.product.description!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: widget.isSmallPhone ? 10 : widget.isMobile ? 11 : 12,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.65),
-                    fontWeight: FontWeight.w400,
-                    height: 1.4,
-                    letterSpacing: 0.2,
+                // Üst kısım: Name ve Description
+                Flexible(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Product Name
+                      Text(
+                        widget.product.name,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize: widget.isSmallPhone ? 13 : widget.isMobile ? 14 : 15,
+                          fontWeight: FontWeight.w600,
+                          height: 1.1, // Maksimum kompakt satır yüksekliği
+                          letterSpacing: 0.0, // Letter spacing kaldırıldı
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // Description - Mobil'de kaldırıldı, sadece tablet'te göster
+                      if (widget.product.description != null && widget.product.description!.isNotEmpty && !widget.isMobile && !widget.isSmallPhone) ...[
+                        SizedBox(height: 2),
+                        Text(
+                          widget.product.description!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.65),
+                            fontWeight: FontWeight.w400,
+                            height: 1.2, // Maksimum kompakt satır yüksekliği
+                            letterSpacing: 0.0,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
-                  maxLines: 2, // 2 satır göster - daha okunabilir
-                  overflow: TextOverflow.ellipsis,
+                ),
+                // Alt kısım: Price ve Rating - Maksimum kompakt
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Price
+                    SizedBox(height: widget.isSmallPhone ? 3 : widget.isMobile ? 3 : 5), // Spacing daha da azaltıldı
+                    Text(
+                      PriceFormatter.format(widget.product.discountPrice ?? widget.product.price),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: widget.isSmallPhone ? 15 : widget.isMobile ? 16 : 18,
+                        letterSpacing: 0.0, // Letter spacing kaldırıldı
+                        height: 1.0, // Satır yüksekliği sabit
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // Rating ve Review Count - Maksimum kompakt, tek satır
+                    SizedBox(height: widget.isSmallPhone ? 2 : widget.isMobile ? 2 : 3), // Spacing daha da azaltıldı
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.star,
+                          size: widget.isSmallPhone ? 12 : widget.isMobile ? 13 : 14, // Icon boyutu daha da küçültüldü
+                          color: Colors.amber,
+                        ),
+                        SizedBox(width: widget.isSmallPhone ? 2 : widget.isMobile ? 2 : 3), // Spacing daha da azaltıldı
+                        Text(
+                          (widget.product.rating ?? 0.0).toStringAsFixed(1),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: widget.isSmallPhone ? 10 : widget.isMobile ? 10 : 11, // Font daha da küçültüldü
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            height: 1.0, // Satır yüksekliği sabit
+                          ),
+                        ),
+                        SizedBox(width: widget.isSmallPhone ? 2 : widget.isMobile ? 2 : 3), // Spacing daha da azaltıldı
+                        Flexible(
+                          child: Text(
+                            '(${widget.product.reviewCount ?? 0})',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: widget.isSmallPhone ? 9 : widget.isMobile ? 9 : 10, // Font daha da küçültüldü
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              fontWeight: FontWeight.w400,
+                              height: 1.0, // Satır yüksekliği sabit
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
-              // Price - Düzeltilmiş yazı stili
-              SizedBox(height: widget.isSmallPhone ? 6 : widget.isMobile ? 8 : 10),
-              Text(
-                PriceFormatter.format(widget.product.discountPrice ?? widget.product.price),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary, // Mor renk (sayfa renkleriyle uyumlu)
-                  fontWeight: FontWeight.w700,
-                  fontSize: widget.isSmallPhone ? 15 : widget.isMobile ? 16 : 18,
-                  letterSpacing: 0.2,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
           ),
-        ),
         ),
       ],
     );

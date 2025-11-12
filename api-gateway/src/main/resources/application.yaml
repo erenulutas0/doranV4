@@ -149,7 +149,7 @@ spring:
           predicates:
             - Path=/api/reviews/**
           filters:
-            - StripPrefix=1  # /api kısmını çıkarır
+            - StripPrefix=1  # /api kısmını çıkarır, /reviews/** kalır
             # Rate Limiting (Review Service için özel limit)
             - name: RequestRateLimiter
               args:

@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -79,6 +80,8 @@ public class HobbyGroupService {
         group.setDescription(request.getDescription());
         group.setCategory(request.getCategory());
         group.setLocation(request.getLocation());
+        group.setLatitude(request.getLatitude());
+        group.setLongitude(request.getLongitude());
         group.setRules(request.getRules());
         group.setTags(request.getTags());
         group.setImageId(request.getImageId());
@@ -246,6 +249,18 @@ public class HobbyGroupService {
         return membershipRepository.findActiveMembersByGroupId(groupId)
                 .stream()
                 .map(MembershipResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Yakındaki hobi gruplarını getir (konum bazlı)
+     */
+    @Transactional(readOnly = true)
+    public List<HobbyGroupResponse> getNearbyGroups(BigDecimal latitude, BigDecimal longitude, double radiusKm) {
+        log.debug("Fetching nearby groups - Lat: {}, Lng: {}, Radius: {} km", latitude, longitude, radiusKm);
+        return groupRepository.findNearbyGroups(latitude, longitude, radiusKm)
+                .stream()
+                .map(HobbyGroupResponse::fromEntity)
                 .collect(Collectors.toList());
     }
     

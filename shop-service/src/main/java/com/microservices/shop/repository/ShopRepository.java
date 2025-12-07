@@ -52,17 +52,14 @@ public interface ShopRepository extends JpaRepository<Shop, UUID> {
     
     /**
      * Konum bazlı arama (yakındaki dükkanlar)
-     * Haversine formülü kullanarak mesafe hesaplama
+     * PostGIS kullanarak hızlı ve doğru mesafe hesaplama
      */
-    @Query(value = "SELECT s.*, " +
-            "(6371 * acos(cos(radians(:lat)) * cos(radians(s.latitude)) * " +
-            "cos(radians(s.longitude) - radians(:lng)) + sin(radians(:lat)) * " +
-            "sin(radians(s.latitude)))) AS distance " +
+    @Query(value = "SELECT s.* " +
             "FROM shops s " +
             "WHERE s.is_active = true AND s.deleted_at IS NULL " +
-            "AND s.latitude IS NOT NULL AND s.longitude IS NOT NULL " +
-            "HAVING distance <= :radius " +
-            "ORDER BY distance ASC", 
+            "AND s.location_point IS NOT NULL " +
+            "AND ST_DWithin(s.location_point, CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography), :radius * 1000) " +
+            "ORDER BY ST_Distance(s.location_point, CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography)) ASC", 
             nativeQuery = true)
     List<Shop> findNearbyShops(@Param("lat") BigDecimal latitude, 
                                @Param("lng") BigDecimal longitude, 

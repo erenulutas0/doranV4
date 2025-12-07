@@ -10,7 +10,8 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // Tüm endpoint'ler için CORS etkinleştir
-                .allowedOrigins("http://localhost:8086", "http://127.0.0.1:8086") // Flutter web uygulamasının çalıştığı adres
+                .allowedOrigins("http://localhost:8081", "http://localhost:8082", "http://localhost:8086", 
+                               "http://127.0.0.1:8081", "http://127.0.0.1:8082", "http://127.0.0.1:8086") // Flutter web uygulamasının çalıştığı adres
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH") // İzin verilen HTTP metodları
                 .allowedHeaders("*") // Tüm header'lara izin ver
                 .allowCredentials(true) // Kimlik bilgilerinin (cookie, authorization header) gönderilmesine izin ver

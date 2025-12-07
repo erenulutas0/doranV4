@@ -14,11 +14,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/hobby-groups")
+@CrossOrigin(origins = {"http://localhost:8081", "http://localhost:8082", "http://localhost:8086", "http://127.0.0.1:8081", "http://127.0.0.1:8082", "http://127.0.0.1:8086"}, maxAge = 3600)
 @RequiredArgsConstructor
 @Slf4j
 public class HobbyGroupController {
@@ -119,6 +121,17 @@ public class HobbyGroupController {
     public List<MembershipResponse> getMyMemberships(@RequestHeader("X-User-Id") UUID userId) {
         log.info("GET /api/hobby-groups/my-memberships - User: {}", userId);
         return service.getUserMemberships(userId);
+    }
+    
+    // /nearby endpoint'i /{groupId} endpoint'inden ÖNCE olmalı (Spring route matching için)
+    // Spring daha spesifik route'ları önce kontrol eder, bu yüzden /nearby /{groupId}'den önce gelmeli
+    @GetMapping(value = "/nearby", produces = "application/json")
+    public List<HobbyGroupResponse> getNearbyGroups(
+            @RequestParam BigDecimal latitude,
+            @RequestParam BigDecimal longitude,
+            @RequestParam(defaultValue = "5.0") double radiusKm) {
+        log.info("GET /api/hobby-groups/nearby - Lat: {}, Lng: {}, Radius: {} km", latitude, longitude, radiusKm);
+        return service.getNearbyGroups(latitude, longitude, radiusKm);
     }
     
     @GetMapping("/{groupId}/members")

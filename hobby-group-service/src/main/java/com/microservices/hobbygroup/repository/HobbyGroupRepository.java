@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,5 +54,20 @@ public interface HobbyGroupRepository extends JpaRepository<HobbyGroup, UUID> {
      * ID'ye göre grup getir (silinmemiş)
      */
     Optional<HobbyGroup> findByIdAndDeletedAtIsNull(UUID id);
+    
+    /**
+     * Konum bazlı arama (yakındaki hobi grupları)
+     * PostGIS kullanarak hızlı ve doğru mesafe hesaplama
+     */
+    @Query(value = "SELECT hg.* " +
+            "FROM hobby_groups hg " +
+            "WHERE hg.status = 'ACTIVE' AND hg.is_active = true AND hg.deleted_at IS NULL " +
+            "AND hg.location_point IS NOT NULL " +
+            "AND ST_DWithin(hg.location_point, CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography), :radius * 1000) " +
+            "ORDER BY ST_Distance(hg.location_point, CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography)) ASC", 
+            nativeQuery = true)
+    List<HobbyGroup> findNearbyGroups(@Param("lat") BigDecimal latitude, 
+                                      @Param("lng") BigDecimal longitude, 
+                                      @Param("radius") double radiusKm);
 }
 

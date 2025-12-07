@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/job_model.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/widgets/location_filter_dialog.dart';
 
 class JobsPage extends StatefulWidget {
   const JobsPage({super.key});
@@ -21,6 +22,12 @@ class _JobsPageState extends State<JobsPage> {
   final TextEditingController _searchController = TextEditingController();
   final List<String> _categories = ['All', 'Technology', 'Marketing', 'Sales', 'Design', 'Finance', 'Healthcare', 'Education', 'Other'];
   final List<String> _jobTypes = ['All', 'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'REMOTE'];
+  
+  // Location filter state
+  bool _useLocationFilter = false;
+  double? _filterLatitude;
+  double? _filterLongitude;
+  double _filterRadiusKm = 10.0;
 
   @override
   void initState() {
@@ -41,12 +48,43 @@ class _JobsPageState extends State<JobsPage> {
     });
 
     try {
-      final jobs = await _apiService.getJobs(
-        category: _selectedCategory == 'All' ? null : _selectedCategory,
-        jobType: _selectedJobType == 'All' ? null : _selectedJobType,
-        remote: _isRemote,
-        search: _searchController.text.isEmpty ? null : _searchController.text,
-      );
+      List<JobModel> jobs;
+      
+      if (_useLocationFilter && _filterLatitude != null && _filterLongitude != null) {
+        // Use location-based search
+        jobs = await _apiService.getNearbyJobs(
+          _filterLatitude!,
+          _filterLongitude!,
+          _filterRadiusKm,
+        );
+        // Apply other filters locally
+        if (_selectedCategory != null && _selectedCategory != 'All') {
+          jobs = jobs.where((job) => job.category == _selectedCategory).toList();
+        }
+        if (_selectedJobType != null && _selectedJobType != 'All') {
+          jobs = jobs.where((job) => job.jobType == _selectedJobType).toList();
+        }
+        if (_isRemote == true) {
+          jobs = jobs.where((job) => job.isRemote == true).toList();
+        }
+        if (_searchController.text.isNotEmpty) {
+          final search = _searchController.text.toLowerCase();
+          jobs = jobs.where((job) => 
+            job.title.toLowerCase().contains(search) ||
+            (job.description?.toLowerCase().contains(search) ?? false) ||
+            (job.companyName?.toLowerCase().contains(search) ?? false)
+          ).toList();
+        }
+      } else {
+        // Use regular search
+        jobs = await _apiService.getJobs(
+          category: _selectedCategory == 'All' ? null : _selectedCategory,
+          jobType: _selectedJobType == 'All' ? null : _selectedJobType,
+          remote: _isRemote,
+          search: _searchController.text.isEmpty ? null : _searchController.text,
+        );
+      }
+      
       setState(() {
         _jobs = jobs;
         _isLoading = false;
@@ -58,6 +96,35 @@ class _JobsPageState extends State<JobsPage> {
       });
     }
   }
+  
+  void _openLocationFilter() {
+    showDialog(
+      context: context,
+      builder: (context) => LocationFilterDialog(
+        initialLatitude: _filterLatitude,
+        initialLongitude: _filterLongitude,
+        initialRadiusKm: _filterRadiusKm,
+        onApply: (latitude, longitude, radiusKm) {
+          setState(() {
+            _useLocationFilter = true;
+            _filterLatitude = latitude;
+            _filterLongitude = longitude;
+            _filterRadiusKm = radiusKm;
+          });
+          _loadJobs();
+        },
+      ),
+    );
+  }
+  
+  void _clearLocationFilter() {
+    setState(() {
+      _useLocationFilter = false;
+      _filterLatitude = null;
+      _filterLongitude = null;
+    });
+    _loadJobs();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +134,24 @@ class _JobsPageState extends State<JobsPage> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        actions: [
+          // Location filter button
+          IconButton(
+            icon: Icon(
+              _useLocationFilter ? Icons.location_on : Icons.location_off,
+              color: _useLocationFilter ? Colors.purple : Colors.grey,
+            ),
+            onPressed: _openLocationFilter,
+            tooltip: 'Konum Filtresi',
+          ),
+          // Clear location filter button (if active)
+          if (_useLocationFilter)
+            IconButton(
+              icon: const Icon(Icons.clear, color: Colors.red),
+              onPressed: _clearLocationFilter,
+              tooltip: 'Konum Filtresini Temizle',
+            ),
+        ],
       ),
       body: Column(
         children: [

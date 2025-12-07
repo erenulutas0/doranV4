@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/shop_model.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/widgets/location_filter_dialog.dart';
 
 class ShopsPage extends StatefulWidget {
   const ShopsPage({super.key});
@@ -17,6 +18,12 @@ class _ShopsPageState extends State<ShopsPage> {
   final ApiService _apiService = ApiService();
   String _selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
+  
+  // Location filter state
+  bool _useLocationFilter = false;
+  double? _filterLatitude;
+  double? _filterLongitude;
+  double _filterRadiusKm = 10.0;
 
   final List<String> _categories = ['All', 'Electronics', 'Fashion', 'Food', 'Home'];
 
@@ -38,10 +45,33 @@ class _ShopsPageState extends State<ShopsPage> {
       _error = null;
     });
     try {
-      final fetchedShops = await _apiService.getShops(
-        category: category == 'All' ? null : category,
-        search: search,
-      );
+      List<ShopModel> fetchedShops;
+      
+      if (_useLocationFilter && _filterLatitude != null && _filterLongitude != null) {
+        // Use location-based search
+        fetchedShops = await _apiService.getNearbyShops(
+          _filterLatitude!,
+          _filterLongitude!,
+          _filterRadiusKm,
+        );
+        // Apply category and search filters locally if needed
+        if (category != null && category != 'All') {
+          fetchedShops = fetchedShops.where((shop) => shop.category == category).toList();
+        }
+        if (search != null && search.isNotEmpty) {
+          fetchedShops = fetchedShops.where((shop) => 
+            shop.name.toLowerCase().contains(search.toLowerCase()) ||
+            (shop.description?.toLowerCase().contains(search.toLowerCase()) ?? false)
+          ).toList();
+        }
+      } else {
+        // Use regular search
+        fetchedShops = await _apiService.getShops(
+          category: category == 'All' ? null : category,
+          search: search,
+        );
+      }
+      
       setState(() {
         _shops = fetchedShops;
         _isLoading = false;
@@ -52,6 +82,35 @@ class _ShopsPageState extends State<ShopsPage> {
         _isLoading = false;
       });
     }
+  }
+  
+  void _openLocationFilter() {
+    showDialog(
+      context: context,
+      builder: (context) => LocationFilterDialog(
+        initialLatitude: _filterLatitude,
+        initialLongitude: _filterLongitude,
+        initialRadiusKm: _filterRadiusKm,
+        onApply: (latitude, longitude, radiusKm) {
+          setState(() {
+            _useLocationFilter = true;
+            _filterLatitude = latitude;
+            _filterLongitude = longitude;
+            _filterRadiusKm = radiusKm;
+          });
+          _loadShops(category: _selectedCategory);
+        },
+      ),
+    );
+  }
+  
+  void _clearLocationFilter() {
+    setState(() {
+      _useLocationFilter = false;
+      _filterLatitude = null;
+      _filterLongitude = null;
+    });
+    _loadShops(category: _selectedCategory);
   }
 
   void _onCategorySelected(String category) {
@@ -88,6 +147,24 @@ class _ShopsPageState extends State<ShopsPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          // Location filter button
+          IconButton(
+            icon: Icon(
+              _useLocationFilter ? Icons.location_on : Icons.location_off,
+              color: _useLocationFilter ? const Color(0xFF8E24AA) : const Color(0xFF757575),
+            ),
+            onPressed: _openLocationFilter,
+            tooltip: 'Konum Filtresi',
+          ),
+          // Clear location filter button (if active)
+          if (_useLocationFilter)
+            IconButton(
+              icon: const Icon(Icons.clear, color: Colors.red),
+              onPressed: _clearLocationFilter,
+              tooltip: 'Konum Filtresini Temizle',
+            ),
+        ],
       ),
       body: Column(
         children: [

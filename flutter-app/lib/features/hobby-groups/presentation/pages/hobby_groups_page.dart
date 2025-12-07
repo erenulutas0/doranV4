@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/hobby_group_model.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/widgets/location_filter_dialog.dart';
 
 class HobbyGroupsPage extends StatefulWidget {
   const HobbyGroupsPage({super.key});
@@ -19,6 +20,12 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
   String? _selectedLocation;
   final TextEditingController _searchController = TextEditingController();
   final List<String> _categories = ['All', 'Sports', 'Arts', 'Music', 'Gaming', 'Reading', 'Cooking', 'Travel', 'Photography', 'Other'];
+  
+  // Location filter state
+  bool _useLocationFilter = false;
+  double? _filterLatitude;
+  double? _filterLongitude;
+  double _filterRadiusKm = 10.0;
 
   @override
   void initState() {
@@ -39,11 +46,35 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
     });
 
     try {
-      final groups = await _apiService.getHobbyGroups(
-        category: _selectedCategory == 'All' ? null : _selectedCategory,
-        location: _selectedLocation,
-        search: _searchController.text.isEmpty ? null : _searchController.text,
-      );
+      List<HobbyGroupModel> groups;
+      
+      if (_useLocationFilter && _filterLatitude != null && _filterLongitude != null) {
+        // Use location-based search
+        groups = await _apiService.getNearbyHobbyGroups(
+          _filterLatitude!,
+          _filterLongitude!,
+          _filterRadiusKm,
+        );
+        // Apply category and search filters locally if needed
+        if (_selectedCategory != null && _selectedCategory != 'All') {
+          groups = groups.where((group) => group.category == _selectedCategory).toList();
+        }
+        if (_searchController.text.isNotEmpty) {
+          final search = _searchController.text.toLowerCase();
+          groups = groups.where((group) => 
+            group.name.toLowerCase().contains(search) ||
+            (group.description?.toLowerCase().contains(search) ?? false)
+          ).toList();
+        }
+      } else {
+        // Use regular search
+        groups = await _apiService.getHobbyGroups(
+          category: _selectedCategory == 'All' ? null : _selectedCategory,
+          location: _selectedLocation,
+          search: _searchController.text.isEmpty ? null : _searchController.text,
+        );
+      }
+      
       setState(() {
         _groups = groups;
         _isLoading = false;
@@ -54,6 +85,35 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
         _isLoading = false;
       });
     }
+  }
+  
+  void _openLocationFilter() {
+    showDialog(
+      context: context,
+      builder: (context) => LocationFilterDialog(
+        initialLatitude: _filterLatitude,
+        initialLongitude: _filterLongitude,
+        initialRadiusKm: _filterRadiusKm,
+        onApply: (latitude, longitude, radiusKm) {
+          setState(() {
+            _useLocationFilter = true;
+            _filterLatitude = latitude;
+            _filterLongitude = longitude;
+            _filterRadiusKm = radiusKm;
+          });
+          _loadGroups();
+        },
+      ),
+    );
+  }
+  
+  void _clearLocationFilter() {
+    setState(() {
+      _useLocationFilter = false;
+      _filterLatitude = null;
+      _filterLongitude = null;
+    });
+    _loadGroups();
   }
 
   String _getCategoryImageUrl(String category) {
@@ -87,6 +147,24 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        actions: [
+          // Location filter button
+          IconButton(
+            icon: Icon(
+              _useLocationFilter ? Icons.location_on : Icons.location_off,
+              color: _useLocationFilter ? Colors.purple : Colors.grey,
+            ),
+            onPressed: _openLocationFilter,
+            tooltip: 'Konum Filtresi',
+          ),
+          // Clear location filter button (if active)
+          if (_useLocationFilter)
+            IconButton(
+              icon: const Icon(Icons.clear, color: Colors.red),
+              onPressed: _clearLocationFilter,
+              tooltip: 'Konum Filtresini Temizle',
+            ),
+        ],
       ),
       body: Column(
         children: [

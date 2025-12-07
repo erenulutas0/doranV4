@@ -26,11 +26,13 @@ spring:
   
   cloud:
     config:
+      enabled: false
       uri: http://config-server:8888
       import-check:
         enabled: false
-  config:
-    import: optional:configserver:http://config-server:8888
+  # config:
+  #   import: optional:configserver:http://config-server:8888
+  # Config Server geçici olarak devre dışı - CORS sorununu test etmek için
 
 eureka:
   client:
@@ -44,4 +46,3 @@ logging:
     com.microservices.jobs: DEBUG
     org.springframework.web: INFO
     org.hibernate: INFO
-

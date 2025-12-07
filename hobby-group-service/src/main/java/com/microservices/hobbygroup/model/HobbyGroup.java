@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -81,6 +82,22 @@ public class HobbyGroup {
     @Size(max = 100, message = "Location must not exceed 100 characters")
     @Column(length = 100)
     private String location;
+    
+    /**
+     * Enlem (Latitude)
+     */
+    @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
+    @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+    
+    /**
+     * Boylam (Longitude)
+     */
+    @DecimalMin(value = "-180.0", message = "Longitude must be between -180 and 180")
+    @DecimalMax(value = "180.0", message = "Longitude must be between -180 and 180")
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
     
     /**
      * Grup Kuralları (JSON formatında)

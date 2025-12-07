@@ -355,5 +355,82 @@ class ApiService {
       throw Exception('Error fetching hobby group: $e');
     }
   }
+
+  // Nearby/Location-based Search Methods
+  Future<List<ShopModel>> getNearbyShops(double latitude, double longitude, double radiusKm) async {
+    try {
+      const String shopServiceUrl = 'http://localhost:8092';
+      final response = await http.get(
+        Uri.parse('$shopServiceUrl/shops/nearby?latitude=$latitude&longitude=$longitude&radiusKm=$radiusKm'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => ShopModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load nearby shops: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching nearby shops: $e');
+    }
+  }
+
+  Future<List<VenueModel>> getNearbyVenues(double latitude, double longitude, double radiusKm) async {
+    try {
+      const String entertainmentServiceUrl = 'http://localhost:8095';
+      final response = await http.get(
+        Uri.parse('$entertainmentServiceUrl/venues/nearby?latitude=$latitude&longitude=$longitude&radiusKm=$radiusKm'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => VenueModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load nearby venues: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching nearby venues: $e');
+    }
+  }
+
+  Future<List<HobbyGroupModel>> getNearbyHobbyGroups(double latitude, double longitude, double radiusKm) async {
+    try {
+      const String hobbyGroupServiceUrl = 'http://localhost:8096';
+      final response = await http.get(
+        Uri.parse('$hobbyGroupServiceUrl/hobby-groups/nearby?latitude=$latitude&longitude=$longitude&radiusKm=$radiusKm'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => HobbyGroupModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load nearby hobby groups: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching nearby hobby groups: $e');
+    }
+  }
+
+  Future<List<JobModel>> getNearbyJobs(double latitude, double longitude, double radiusKm) async {
+    try {
+      const String jobsServiceUrl = 'http://localhost:8093';
+      final response = await http.get(
+        Uri.parse('$jobsServiceUrl/jobs/nearby?latitude=$latitude&longitude=$longitude&radiusKm=$radiusKm'),
+        headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => JobModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load nearby jobs: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching nearby jobs: $e');
+    }
+  }
 }
 

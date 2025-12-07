@@ -19,7 +19,11 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         
         // Flutter web uygulamasının origin'i
+        config.addAllowedOrigin("http://localhost:8081");
+        config.addAllowedOrigin("http://localhost:8082");
         config.addAllowedOrigin("http://localhost:8086");
+        config.addAllowedOrigin("http://127.0.0.1:8081");
+        config.addAllowedOrigin("http://127.0.0.1:8082");
         config.addAllowedOrigin("http://127.0.0.1:8086");
         
         // Tüm HTTP metodlarına izin ver

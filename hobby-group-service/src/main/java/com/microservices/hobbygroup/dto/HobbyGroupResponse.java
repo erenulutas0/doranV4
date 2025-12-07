@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -20,6 +21,8 @@ public class HobbyGroupResponse {
     private String description;
     private String category;
     private String location;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     private String rules;
     private String tags;
     private UUID imageId;
@@ -39,6 +42,8 @@ public class HobbyGroupResponse {
                 .description(group.getDescription())
                 .category(group.getCategory())
                 .location(group.getLocation())
+                .latitude(group.getLatitude())
+                .longitude(group.getLongitude())
                 .rules(group.getRules())
                 .tags(group.getTags())
                 .imageId(group.getImageId())

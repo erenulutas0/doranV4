@@ -42,16 +42,14 @@ public interface VenueRepository extends JpaRepository<Venue, UUID> {
     
     /**
      * Konum bazlı arama (yakındaki mekanlar)
+     * PostGIS kullanarak hızlı ve doğru mesafe hesaplama
      */
-    @Query(value = "SELECT v.*, " +
-            "(6371 * acos(cos(radians(:lat)) * cos(radians(v.latitude)) * " +
-            "cos(radians(v.longitude) - radians(:lng)) + sin(radians(:lat)) * " +
-            "sin(radians(v.latitude)))) AS distance " +
+    @Query(value = "SELECT v.* " +
             "FROM venues v " +
             "WHERE v.is_active = true AND v.deleted_at IS NULL " +
-            "AND v.latitude IS NOT NULL AND v.longitude IS NOT NULL " +
-            "HAVING distance <= :radius " +
-            "ORDER BY distance ASC", 
+            "AND v.location_point IS NOT NULL " +
+            "AND ST_DWithin(v.location_point, CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography), :radius * 1000) " +
+            "ORDER BY ST_Distance(v.location_point, CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography)) ASC", 
             nativeQuery = true)
     List<Venue> findNearbyVenues(@Param("lat") BigDecimal latitude, 
                                  @Param("lng") BigDecimal longitude, 

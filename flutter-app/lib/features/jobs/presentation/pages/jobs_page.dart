@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/job_model.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/widgets/location_filter_dialog.dart';
+import '../../../../core/widgets/location_map_widget.dart';
+import 'package:latlong2/latlong.dart';
 
 class JobsPage extends StatefulWidget {
   const JobsPage({super.key});
@@ -97,7 +100,87 @@ class _JobsPageState extends State<JobsPage> {
     }
   }
   
-  void _openLocationFilter() {
+  List<MapMarker> _createJobMarkers() {
+    if (kDebugMode) {
+      debugPrint('📊 Current jobs count: ${_jobs.length}');
+      final jobsWithLocation = _jobs.where((job) => job.latitude != null && job.longitude != null && job.isRemote != true).toList();
+      debugPrint('✅ Jobs with location (non-remote): ${jobsWithLocation.length} / ${_jobs.length}');
+      debugPrint('🔍 Creating markers for ${jobsWithLocation.length} jobs...');
+    }
+    return _jobs
+        .where((job) => job.latitude != null && job.longitude != null && job.isRemote != true)
+        .map((job) {
+      if (kDebugMode) {
+        debugPrint('🎯 Job marker: "${job.title}" at (${job.latitude}, ${job.longitude})');
+      }
+      return MapMarker(
+        position: LatLng(job.latitude!, job.longitude!),
+        title: job.title,
+        subtitle: job.companyName ?? job.category,
+        icon: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.green,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.work, color: Colors.white, size: 24),
+        ),
+        onTap: () {
+          _showJobInfo(job);
+        },
+      );
+    }).toList();
+  }
+
+  void _showJobInfo(JobModel job) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(job.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (job.companyName != null) Text('Şirket: ${job.companyName}'),
+            Text('Kategori: ${job.category}'),
+            Text('Tip: ${job.displayJobType}'),
+            if (job.city != null) Text('Şehir: ${job.city}'),
+            if (job.salaryRange != null) Text('Maaş: ${job.salaryRange}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openLocationFilter() async {
+    // Eğer veriler yükleniyorsa veya boşsa, önce yükle
+    if (_isLoading || _jobs.isEmpty) {
+      await _loadJobs();
+    }
+    
+    if (!mounted) return;
+    
+    if (kDebugMode) {
+      debugPrint('🗺️ Opening location filter dialog for Jobs...');
+      final markers = _createJobMarkers();
+      debugPrint('🎯 Created ${markers.length} markers for dialog');
+    }
+    
     showDialog(
       context: context,
       builder: (context) => LocationFilterDialog(
@@ -113,6 +196,7 @@ class _JobsPageState extends State<JobsPage> {
           });
           _loadJobs();
         },
+        markers: _createJobMarkers(),
       ),
     );
   }

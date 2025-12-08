@@ -37,3 +37,4 @@ WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND location_point IS NULL;
 
 
 
+

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class ShopModel {
   final String id;
   final String ownerId;
@@ -51,10 +53,31 @@ class ShopModel {
     this.updatedAt,
   });
 
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      return parsed;
+    }
+    // BigDecimal gibi durumlar için
+    try {
+      return double.parse(value.toString());
+    } catch (e) {
+      return null;
+    }
+  }
+
   factory ShopModel.fromJson(Map<String, dynamic> json) {
     final category = json['category']?.toString() ?? '';
     final coverImageUrl = json['coverImageUrl'] as String?;
     final logoImageUrl = json['logoImageUrl'] as String?;
+    
+    // Debug: latitude/longitude değerlerini logla
+    if (kDebugMode) {
+      debugPrint('🔍 Shop "${json['name']}": lat=${json['latitude']} (${json['latitude'].runtimeType}), lng=${json['longitude']} (${json['longitude'].runtimeType})');
+    }
     
     // Dummy Unsplash URLs for demonstration if no image URL provided
     String? getDummyCoverImage(String category) {
@@ -89,8 +112,8 @@ class ShopModel {
       phone: json['phone'],
       email: json['email'],
       website: json['website'],
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
       openingTime: json['openingTime'],
       closingTime: json['closingTime'],
       workingDays: json['workingDays'],

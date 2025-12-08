@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'location_map_widget.dart';
@@ -8,6 +10,7 @@ class LocationFilterDialog extends StatefulWidget {
   final double? initialLongitude;
   final double? initialRadiusKm;
   final Function(double latitude, double longitude, double radiusKm) onApply;
+  final List<MapMarker>? markers;
 
   const LocationFilterDialog({
     super.key,
@@ -15,6 +18,7 @@ class LocationFilterDialog extends StatefulWidget {
     this.initialLongitude,
     this.initialRadiusKm,
     required this.onApply,
+    this.markers,
   });
 
   @override
@@ -33,6 +37,12 @@ class _LocationFilterDialogState extends State<LocationFilterDialog> {
     _latitude = widget.initialLatitude ?? 39.9334; // Default: Ankara
     _longitude = widget.initialLongitude ?? 32.8597;
     _radiusKm = widget.initialRadiusKm ?? 10.0;
+    if (kDebugMode) {
+      debugPrint('🗺️ LocationFilterDialog initState - markers: ${widget.markers?.length ?? 0}');
+      if (widget.markers != null && widget.markers!.isNotEmpty) {
+        debugPrint('📍 First marker in dialog: ${widget.markers!.first.position.latitude}, ${widget.markers!.first.position.longitude}');
+      }
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -112,6 +122,54 @@ class _LocationFilterDialogState extends State<LocationFilterDialog> {
     });
   }
 
+  double _calculateCenterLatitude() {
+    if (widget.markers == null || widget.markers!.isEmpty) {
+      return _latitude;
+    }
+    final latitudes = widget.markers!.map((m) => m.position.latitude).toList();
+    return (latitudes.reduce((a, b) => a + b) / latitudes.length);
+  }
+
+  double _calculateCenterLongitude() {
+    if (widget.markers == null || widget.markers!.isEmpty) {
+      return _longitude;
+    }
+    final longitudes = widget.markers!.map((m) => m.position.longitude).toList();
+    return (longitudes.reduce((a, b) => a + b) / longitudes.length);
+  }
+
+  double _calculateOptimalRadius() {
+    if (widget.markers == null || widget.markers!.isEmpty) {
+      return _radiusKm;
+    }
+    // Calculate distance between all markers and find max
+    double maxDistance = 0;
+    for (int i = 0; i < widget.markers!.length; i++) {
+      for (int j = i + 1; j < widget.markers!.length; j++) {
+        final lat1 = widget.markers![i].position.latitude;
+        final lon1 = widget.markers![i].position.longitude;
+        final lat2 = widget.markers![j].position.latitude;
+        final lon2 = widget.markers![j].position.longitude;
+        
+        // Haversine formula for distance
+        final dLat = (lat2 - lat1) * 3.141592653589793 / 180.0;
+        final dLon = (lon2 - lon1) * 3.141592653589793 / 180.0;
+        final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+            math.cos(lat1 * math.pi / 180.0) *
+            math.cos(lat2 * math.pi / 180.0) *
+            math.sin(dLon / 2) * math.sin(dLon / 2);
+        final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+        final distance = (6371 * c).toDouble(); // Earth radius in km
+        
+        if (distance > maxDistance) {
+          maxDistance = distance;
+        }
+      }
+    }
+    // Add 20% padding
+    return (maxDistance * 1.2).clamp(5.0, 50.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -151,11 +209,27 @@ class _LocationFilterDialogState extends State<LocationFilterDialog> {
             ),
             // Map
             Expanded(
-              child: LocationMapWidget(
-                initialLatitude: _latitude,
-                initialLongitude: _longitude,
-                initialRadiusKm: _radiusKm,
-                onLocationChanged: _onLocationChanged,
+              child: Builder(
+                builder: (context) {
+                  if (kDebugMode) {
+                    debugPrint('🗺️ LocationFilterDialog build - markers: ${widget.markers?.length ?? 0}');
+                  }
+                  return widget.markers != null && widget.markers!.isNotEmpty
+                      ? LocationMapWidget(
+                          initialLatitude: _calculateCenterLatitude(),
+                          initialLongitude: _calculateCenterLongitude(),
+                          initialRadiusKm: _calculateOptimalRadius(),
+                          onLocationChanged: _onLocationChanged,
+                          markers: widget.markers,
+                        )
+                      : LocationMapWidget(
+                          initialLatitude: _latitude,
+                          initialLongitude: _longitude,
+                          initialRadiusKm: _radiusKm,
+                          onLocationChanged: _onLocationChanged,
+                          markers: widget.markers,
+                        );
+                },
               ),
             ),
             // Buttons

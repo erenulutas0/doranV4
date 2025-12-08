@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/hobby_group_model.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/widgets/location_filter_dialog.dart';
+import '../../../../core/widgets/location_map_widget.dart';
+import 'package:latlong2/latlong.dart';
 
 class HobbyGroupsPage extends StatefulWidget {
   const HobbyGroupsPage({super.key});
@@ -87,7 +90,90 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
     }
   }
   
-  void _openLocationFilter() {
+  List<MapMarker> _createHobbyGroupMarkers() {
+    if (kDebugMode) {
+      debugPrint('📊 Current hobby groups count: ${_groups.length}');
+      final groupsWithLocation = _groups.where((group) => group.latitude != null && group.longitude != null).toList();
+      debugPrint('✅ Hobby groups with location: ${groupsWithLocation.length} / ${_groups.length}');
+      debugPrint('🔍 Creating markers for ${groupsWithLocation.length} hobby groups...');
+    }
+    return _groups
+        .where((group) => group.latitude != null && group.longitude != null)
+        .map((group) {
+      if (kDebugMode) {
+        debugPrint('🎯 Hobby group marker: "${group.name}" at (${group.latitude}, ${group.longitude})');
+      }
+      return MapMarker(
+        position: LatLng(group.latitude!, group.longitude!),
+        title: group.name,
+        subtitle: group.category,
+        icon: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.pink,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.group, color: Colors.white, size: 24),
+        ),
+        onTap: () {
+          _showHobbyGroupInfo(group);
+        },
+      );
+    }).toList();
+  }
+
+  void _showHobbyGroupInfo(HobbyGroupModel group) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(group.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Kategori: ${group.category}'),
+            if (group.location != null) Text('Konum: ${group.location}'),
+            Text('Üyeler: ${group.currentMembers}/${group.maxMembersCount > 0 ? group.maxMembersCount : "∞"}'),
+            if (group.description != null) 
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text('Açıklama: ${group.description}'),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openLocationFilter() async {
+    // Eğer veriler yükleniyorsa veya boşsa, önce yükle
+    if (_isLoading || _groups.isEmpty) {
+      await _loadGroups();
+    }
+    
+    if (!mounted) return;
+    
+    if (kDebugMode) {
+      debugPrint('🗺️ Opening location filter dialog for Hobby Groups...');
+      final markers = _createHobbyGroupMarkers();
+      debugPrint('🎯 Created ${markers.length} markers for dialog');
+    }
+    
     showDialog(
       context: context,
       builder: (context) => LocationFilterDialog(
@@ -103,6 +189,7 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
           });
           _loadGroups();
         },
+        markers: _createHobbyGroupMarkers(),
       ),
     );
   }

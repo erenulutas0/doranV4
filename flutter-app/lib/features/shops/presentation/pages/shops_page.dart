@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/shop_model.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/widgets/location_filter_dialog.dart';
+import '../../../../core/widgets/location_map_widget.dart';
+import 'package:latlong2/latlong.dart';
 
 class ShopsPage extends StatefulWidget {
   const ShopsPage({super.key});
@@ -84,7 +87,92 @@ class _ShopsPageState extends State<ShopsPage> {
     }
   }
   
-  void _openLocationFilter() {
+  List<MapMarker> _createShopMarkers() {
+    debugPrint('🔍 Creating markers for ${_shops.length} shops');
+    final shopsWithLocation = _shops.where((shop) {
+      final hasLocation = shop.latitude != null && shop.longitude != null;
+      if (!hasLocation) {
+        debugPrint('⚠️ Shop "${shop.name}" has no location (lat: ${shop.latitude}, lng: ${shop.longitude})');
+      }
+      return hasLocation;
+    }).toList();
+    debugPrint('✅ Shops with location: ${shopsWithLocation.length} / ${_shops.length}');
+    if (shopsWithLocation.isEmpty) {
+      debugPrint('❌ No shops with location data!');
+    }
+    return shopsWithLocation.map((shop) {
+      debugPrint('📍 Creating marker for: ${shop.name} at (${shop.latitude}, ${shop.longitude})');
+      return MapMarker(
+        position: LatLng(shop.latitude!, shop.longitude!),
+        title: shop.name,
+        subtitle: shop.category,
+        icon: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Icon(Icons.store, color: Colors.white, size: 24),
+        ),
+        onTap: () {
+          _showShopInfo(shop);
+        },
+      );
+    }).toList();
+  }
+
+  void _showShopInfo(ShopModel shop) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(shop.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Kategori: ${shop.category}'),
+            if (shop.city != null) Text('Şehir: ${shop.city}'),
+            if (shop.address != null) Text('Adres: ${shop.address}'),
+            if (shop.rating > 0)
+              Text('Rating: ${shop.rating.toStringAsFixed(1)} ⭐'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openLocationFilter() async {
+    debugPrint('🗺️ Opening location filter dialog...');
+    debugPrint('📊 Current shops count: ${_shops.length}');
+    debugPrint('⏳ Loading state: $_isLoading');
+    
+    // Eğer veriler yükleniyorsa veya boşsa, önce yükle
+    if (_isLoading || _shops.isEmpty) {
+      debugPrint('📥 Loading shops before opening dialog...');
+      await _loadShops(category: _selectedCategory);
+      debugPrint('✅ Shops loaded: ${_shops.length}');
+    }
+    
+    if (!mounted) return;
+    
+    final markers = _createShopMarkers();
+    debugPrint('🎯 Created ${markers.length} markers for dialog');
+    
     showDialog(
       context: context,
       builder: (context) => LocationFilterDialog(
@@ -100,6 +188,7 @@ class _ShopsPageState extends State<ShopsPage> {
           });
           _loadShops(category: _selectedCategory);
         },
+        markers: markers,
       ),
     );
   }

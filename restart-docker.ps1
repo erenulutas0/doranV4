@@ -36,3 +36,4 @@ Write-Host "`n✅ Tamamlandı! Docker Desktop başladıktan sonra şu komutu ça
 Write-Host "   docker-compose up -d" -ForegroundColor Cyan
 
 
+

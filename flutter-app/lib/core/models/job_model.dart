@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class JobModel {
   final String id;
   final String ownerId;
@@ -8,6 +10,8 @@ class JobModel {
   final String? companyName;
   final String? location;
   final String? city;
+  final double? latitude;
+  final double? longitude;
   final String? salaryRange;
   final bool? isRemote;
   final String? requirements;
@@ -30,6 +34,8 @@ class JobModel {
     this.companyName,
     this.location,
     this.city,
+    this.latitude,
+    this.longitude,
     this.salaryRange,
     this.isRemote,
     this.requirements,
@@ -43,7 +49,25 @@ class JobModel {
     this.updatedAt,
   });
 
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      return parsed;
+    }
+    try {
+      return double.parse(value.toString());
+    } catch (e) {
+      return null;
+    }
+  }
+
   factory JobModel.fromJson(Map<String, dynamic> json) {
+    if (kDebugMode) {
+      debugPrint('🔍 Job "${json['title']}": lat=${json['latitude']} (${json['latitude']?.runtimeType}), lng=${json['longitude']} (${json['longitude']?.runtimeType})');
+    }
     return JobModel(
       id: json['id']?.toString() ?? '',
       ownerId: json['ownerId']?.toString() ?? '',
@@ -54,6 +78,8 @@ class JobModel {
       companyName: json['companyName'],
       location: json['location'],
       city: json['city'],
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
       salaryRange: json['salaryRange'],
       isRemote: json['isRemote'] ?? false,
       requirements: json['requirements'],

@@ -3,6 +3,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/models/venue_model.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/widgets/location_filter_dialog.dart';
+import '../../../../core/widgets/location_map_widget.dart';
+import 'package:latlong2/latlong.dart';
 
 class EntertainmentPage extends StatefulWidget {
   const EntertainmentPage({super.key});
@@ -84,7 +86,105 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
     }
   }
   
-  void _openLocationFilter() {
+  List<MapMarker> _createVenueMarkers() {
+    return _venues
+        .where((venue) => venue.latitude != null && venue.longitude != null)
+        .map((venue) {
+      IconData iconData;
+      Color iconColor;
+      switch (venue.venueType.toUpperCase()) {
+        case 'RESTAURANT':
+          iconData = Icons.restaurant;
+          iconColor = Colors.orange;
+          break;
+        case 'CAFE':
+          iconData = Icons.local_cafe;
+          iconColor = Colors.brown;
+          break;
+        case 'BAR':
+          iconData = Icons.local_bar;
+          iconColor = Colors.amber;
+          break;
+        case 'CLUB':
+          iconData = Icons.music_note;
+          iconColor = Colors.purple;
+          break;
+        case 'THEATER':
+        case 'CINEMA':
+          iconData = Icons.movie;
+          iconColor = Colors.red;
+          break;
+        case 'SPORTS':
+          iconData = Icons.sports_soccer;
+          iconColor = Colors.green;
+          break;
+        default:
+          iconData = Icons.place;
+          iconColor = Colors.blue;
+      }
+      
+      return MapMarker(
+        position: LatLng(venue.latitude!, venue.longitude!),
+        title: venue.name,
+        subtitle: venue.displayType,
+        icon: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: iconColor,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: Icon(iconData, color: Colors.white, size: 24),
+        ),
+        onTap: () {
+          _showVenueInfo(venue);
+        },
+      );
+    }).toList();
+  }
+
+  void _showVenueInfo(VenueModel venue) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(venue.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tip: ${venue.displayType}'),
+            if (venue.city != null) Text('Şehir: ${venue.city}'),
+            if (venue.address != null) Text('Adres: ${venue.address}'),
+            if (venue.rating > 0)
+              Text('Rating: ${venue.rating.toStringAsFixed(1)} ⭐'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openLocationFilter() async {
+    // Eğer veriler yükleniyorsa veya boşsa, önce yükle
+    if (_isLoading || _venues.isEmpty) {
+      await _loadVenues(venueType: _selectedVenueType);
+    }
+    
+    if (!mounted) return;
+    
     showDialog(
       context: context,
       builder: (context) => LocationFilterDialog(
@@ -100,6 +200,7 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
           });
           _loadVenues(venueType: _selectedVenueType);
         },
+        markers: _createVenueMarkers(),
       ),
     );
   }

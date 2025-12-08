@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -41,6 +42,12 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      debugPrint('🗺️ LocationMapWidget build - markers: ${widget.markers?.length ?? 0}');
+      if (widget.markers != null && widget.markers!.isNotEmpty) {
+        debugPrint('📍 First marker: ${widget.markers!.first.position.latitude}, ${widget.markers!.first.position.longitude}');
+      }
+    }
     return Column(
       children: [
         // Map
@@ -56,6 +63,10 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
                 });
                 _updateLocation();
               },
+              // Enable interaction
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all,
+              ),
             ),
             children: [
               // OpenStreetMap tiles
@@ -91,16 +102,28 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
                 ],
               ),
               // Additional markers (shops, venues, etc.)
-              if (widget.markers != null)
-                MarkerLayer(
-                  markers: widget.markers!.map((marker) {
-                    return Marker(
-                      point: marker.position,
-                      width: 30,
-                      height: 30,
-                      child: marker.icon,
+              if (widget.markers != null && widget.markers!.isNotEmpty)
+                Builder(
+                  builder: (context) {
+                    if (kDebugMode) {
+                      debugPrint('🎯 Creating ${widget.markers!.length} markers for MarkerLayer');
+                    }
+                    return MarkerLayer(
+                      markers: widget.markers!.map((marker) {
+                        if (kDebugMode) {
+                          debugPrint('🎯 Adding marker at (${marker.position.latitude}, ${marker.position.longitude}) - ${marker.title ?? "no title"}');
+                        }
+                        return Marker(
+                          point: marker.position,
+                          width: 50,
+                          height: 50,
+                          child: _MarkerWidget(
+                            marker: marker,
+                          ),
+                        );
+                      }).toList(),
                     );
-                  }).toList(),
+                  },
                 ),
             ],
           ),
@@ -162,11 +185,101 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
 class MapMarker {
   final LatLng position;
   final Widget icon;
+  final String? title;
+  final String? subtitle;
+  final VoidCallback? onTap;
 
   MapMarker({
     required this.position,
     required this.icon,
+    this.title,
+    this.subtitle,
+    this.onTap,
   });
+}
+
+class _MarkerWidget extends StatefulWidget {
+  final MapMarker marker;
+
+  const _MarkerWidget({required this.marker});
+
+  @override
+  State<_MarkerWidget> createState() => _MarkerWidgetState();
+}
+
+class _MarkerWidgetState extends State<_MarkerWidget> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.marker.onTap,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Marker icon with scale on hover
+            Transform.scale(
+              scale: _isHovered ? 1.3 : 1.0,
+              child: widget.marker.icon,
+            ),
+            // Tooltip on hover
+            if (_isHovered && widget.marker.title != null)
+              Positioned(
+                bottom: 45,
+                left: -50,
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 150),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (widget.marker.title != null)
+                        Text(
+                          widget.marker.title!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      if (widget.marker.subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.marker.subtitle!,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 10,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 

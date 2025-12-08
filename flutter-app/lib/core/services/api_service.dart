@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/product_model.dart';
 import '../models/review_model.dart';
@@ -184,6 +185,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> content = data['content'] ?? data;
+        if (kDebugMode) {
+          debugPrint('📦 API Response: ${content.length} shops received');
+          if (content.isNotEmpty) {
+            debugPrint('📦 First shop data: ${content[0]}');
+          }
+        }
         return content.map((json) => ShopModel.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load shops: HTTP ${response.statusCode}');
@@ -233,6 +240,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> content = data['content'] ?? data;
+        if (kDebugMode) {
+          debugPrint('📦 API Response (Jobs): ${content.length} jobs received');
+          if (content.isNotEmpty) {
+            debugPrint('📦 First job data: ${content[0]}');
+          }
+        }
         return content.map((json) => JobModel.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load jobs: HTTP ${response.statusCode}');
@@ -327,6 +340,12 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> content = data['content'] ?? data;
+        if (kDebugMode) {
+          debugPrint('📦 API Response (Hobby Groups): ${content.length} groups received');
+          if (content.isNotEmpty) {
+            debugPrint('📦 First hobby group data: ${content[0]}');
+          }
+        }
         return content.map((json) => HobbyGroupModel.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load hobby groups: HTTP ${response.statusCode}');

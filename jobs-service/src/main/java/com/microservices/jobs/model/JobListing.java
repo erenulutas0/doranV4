@@ -128,6 +128,22 @@ public class JobListing {
     private Boolean isRemote;
     
     /**
+     * Enlem (Latitude)
+     */
+    @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
+    @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+    
+    /**
+     * Boylam (Longitude)
+     */
+    @DecimalMin(value = "-180.0", message = "Longitude must be between -180 and 180")
+    @DecimalMax(value = "180.0", message = "Longitude must be between -180 and 180")
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
+    
+    /**
      * Deneyim seviyesi (ENTRY, JUNIOR, MID, SENIOR, LEAD)
      */
     @Enumerated(EnumType.STRING)

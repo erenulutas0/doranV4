@@ -28,6 +28,8 @@ public class JobListingResponse {
     private String location;
     private String city;
     private Boolean isRemote;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     private String experienceLevel;
     private String requiredSkills;
     private String status;
@@ -52,6 +54,8 @@ public class JobListingResponse {
                 .location(job.getLocation())
                 .city(job.getCity())
                 .isRemote(job.getIsRemote())
+                .latitude(job.getLatitude())
+                .longitude(job.getLongitude())
                 .experienceLevel(job.getExperienceLevel() != null ? job.getExperienceLevel().name() : null)
                 .requiredSkills(job.getRequiredSkills())
                 .status(job.getStatus() != null ? job.getStatus().name() : null)

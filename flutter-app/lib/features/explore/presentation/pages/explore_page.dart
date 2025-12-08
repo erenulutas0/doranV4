@@ -48,8 +48,18 @@ class ExplorePage extends StatelessWidget {
             children: [
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/home');
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 4),
                   Text(
                     'Keşfet',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -57,15 +67,7 @@ class ExplorePage extends StatelessWidget {
                           color: Colors.white,
                         ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => context.go('/shops'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: neonGreen,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                    icon: const Icon(Icons.arrow_forward, size: 18),
-                    label: const Text('Tümünü Gör'),
-                  ),
+                  const Spacer(),
                 ],
               ),
               const SizedBox(height: 6),

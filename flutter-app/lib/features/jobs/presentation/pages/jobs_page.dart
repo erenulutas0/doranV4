@@ -211,18 +211,49 @@ class _JobsPageState extends State<JobsPage> {
     _loadJobs();
   }
 
+  Widget _buildChip({
+    required String label,
+    required bool selected,
+    required ValueChanged<bool> onSelected,
+  }) {
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      backgroundColor: Colors.transparent,
+      selectedColor: const Color(0xFFCCFF00),
+      labelStyle: TextStyle(
+        color: selected ? Colors.black : Colors.white,
+        fontWeight: FontWeight.w600,
+      ),
+      side: BorderSide(
+        color: selected ? const Color(0xFFCCFF00) : Colors.white24,
+        width: 1,
+      ),
+      checkmarkColor: Colors.black,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => context.go('/explore'),
         ),
-        title: const Text('Jobs'),
+        title: Text(
+          'Jobs',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
           // Location filter button
           IconButton(
@@ -249,12 +280,14 @@ class _JobsPageState extends State<JobsPage> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Search jobs...',
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: const TextStyle(color: Color(0xFFB3B3B3)),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFFB3B3B3)),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.clear, color: Color(0xFFB3B3B3)),
                         onPressed: () {
                           _searchController.clear();
                           _loadJobs();
@@ -263,9 +296,19 @@ class _JobsPageState extends State<JobsPage> {
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.white24),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.white24),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFCCFF00), width: 2),
                 ),
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: const Color(0xFF2C2C2C),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               onSubmitted: (_) => _loadJobs(),
             ),
@@ -278,8 +321,8 @@ class _JobsPageState extends State<JobsPage> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                FilterChip(
-                  label: const Text('Remote'),
+                _buildChip(
+                  label: 'Remote',
                   selected: _isRemote == true,
                   onSelected: (selected) {
                     setState(() {
@@ -287,14 +330,12 @@ class _JobsPageState extends State<JobsPage> {
                     });
                     _loadJobs();
                   },
-                  selectedColor: Colors.purple.withOpacity(0.2),
-                  checkmarkColor: Colors.purple,
                 ),
                 const SizedBox(width: 8),
                 ..._jobTypes.map((type) => Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(type == 'All' ? 'All Types' : type.replaceAll('_', ' ')),
+                      child: _buildChip(
+                        label: type == 'All' ? 'All Types' : type.replaceAll('_', ' '),
                         selected: _selectedJobType == type || (_selectedJobType == null && type == 'All'),
                         onSelected: (selected) {
                           setState(() {
@@ -302,8 +343,6 @@ class _JobsPageState extends State<JobsPage> {
                           });
                           _loadJobs();
                         },
-                        selectedColor: Colors.purple.withOpacity(0.2),
-                        checkmarkColor: Colors.purple,
                       ),
                     )),
               ],
@@ -324,8 +363,8 @@ class _JobsPageState extends State<JobsPage> {
                 final isSelected = _selectedCategory == category || (_selectedCategory == null && category == 'All');
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(category),
+                  child: _buildChip(
+                    label: category,
                     selected: isSelected,
                     onSelected: (selected) {
                       setState(() {
@@ -333,8 +372,6 @@ class _JobsPageState extends State<JobsPage> {
                       });
                       _loadJobs();
                     },
-                    selectedColor: Colors.purple.withOpacity(0.2),
-                    checkmarkColor: Colors.purple,
                   ),
                 );
               },
@@ -408,8 +445,12 @@ class _JobsPageState extends State<JobsPage> {
   Widget _buildJobCard(JobModel job) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: const Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.white12),
+      ),
       child: Stack(
         children: [
           InkWell(
@@ -433,15 +474,16 @@ class _JobsPageState extends State<JobsPage> {
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
                             if (job.companyName != null) ...[
                               const SizedBox(height: 4),
                               Text(
                                 job.companyName!,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
+                                  color: Color(0xFFB3B3B3),
                                 ),
                               ),
                             ],
@@ -452,7 +494,7 @@ class _JobsPageState extends State<JobsPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
+                            color: Colors.green.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
@@ -472,7 +514,7 @@ class _JobsPageState extends State<JobsPage> {
                       job.description!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                      style: const TextStyle(color: Color(0xFFB3B3B3), fontSize: 14),
                     ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -489,13 +531,14 @@ class _JobsPageState extends State<JobsPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.purple.withOpacity(0.1),
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFCCFF00)),
                     ),
                     child: Text(
                       job.category,
-                      style: TextStyle(
-                        color: Colors.purple[700],
+                      style: const TextStyle(
+                        color: Color(0xFFCCFF00),
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -520,20 +563,20 @@ class _JobsPageState extends State<JobsPage> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
+                      color: const Color(0xFFCCFF00),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                          color: const Color(0xFFCCFF00).withOpacity(0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.map,
                       size: 20,
-                      color: Color(0xFF8E24AA),
+                      color: Colors.black,
                     ),
                   ),
                 ),
@@ -597,17 +640,18 @@ class _JobsPageState extends State<JobsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: const Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.grey[700]),
+          Icon(icon, size: 14, color: const Color(0xFFB3B3B3)),
           const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+            style: const TextStyle(fontSize: 12, color: Color(0xFFB3B3B3)),
           ),
         ],
       ),

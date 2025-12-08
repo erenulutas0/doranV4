@@ -13,11 +13,12 @@ class SearchBarWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(0.12),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -32,17 +33,17 @@ class SearchBarWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.search,
-                  color: Colors.grey[600],
+                  color: Color(0xFFB3B3B3),
                   size: 22,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Search Shop, Categories, Products',
-                    style: TextStyle(
-                      color: Colors.grey[600],
+                    style: const TextStyle(
+                      color: Color(0xFFB3B3B3),
                       fontSize: 14,
                     ),
                   ),

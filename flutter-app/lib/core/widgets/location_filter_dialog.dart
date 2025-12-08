@@ -174,20 +174,22 @@ class _LocationFilterDialogState extends State<LocationFilterDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
+      backgroundColor: Colors.black,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.white,
+          color: const Color(0xFF0B0B0B),
+          border: Border.all(color: Colors.white12),
         ),
         child: Column(
           children: [
             // Header
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade200),
+                  bottom: BorderSide(color: Colors.white12),
                 ),
               ),
               child: Row(
@@ -197,11 +199,12 @@ class _LocationFilterDialogState extends State<LocationFilterDialog> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close, color: Colors.white),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -235,20 +238,25 @@ class _LocationFilterDialogState extends State<LocationFilterDialog> {
             // Buttons
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: Colors.grey.shade200),
+                  top: BorderSide(color: Colors.white12),
                 ),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFCCFF00)),
+                        foregroundColor: const Color(0xFFCCFF00),
+                        backgroundColor: const Color(0xFF1E1E1E),
+                      ),
                       icon: _isLoadingLocation
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFCCFF00)),
                             )
                           : const Icon(Icons.my_location),
                       label: const Text('Mevcut Konum'),
@@ -258,6 +266,10 @@ class _LocationFilterDialogState extends State<LocationFilterDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFCCFF00),
+                        foregroundColor: Colors.black,
+                      ),
                       onPressed: () {
                         widget.onApply(_latitude, _longitude, _radiusKm);
                         Navigator.of(context).pop();

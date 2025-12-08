@@ -282,18 +282,18 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1A1A)),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => context.go('/explore'),
         ),
-        title: const Text(
+        title: Text(
           'Mekanlar',
           style: TextStyle(
-            color: Color(0xFF1A1A1A),
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -324,24 +324,19 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
             padding: const EdgeInsets.all(16.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color(0xFF2C2C2C),
                 borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(color: Colors.white12),
               ),
               child: TextField(
                 controller: _searchController,
-                decoration: InputDecoration(
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
                   hintText: 'Search venues...',
-                  hintStyle: const TextStyle(color: Color(0xFF757575)),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF757575)),
+                  hintStyle: TextStyle(color: Color(0xFFB3B3B3)),
+                  prefixIcon: Icon(Icons.search, color: Color(0xFFB3B3B3)),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 onChanged: _onSearch,
               ),
@@ -366,20 +361,21 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
                     label: Text(venueType == 'All' ? 'All Types' : venueType.replaceAll('_', ' ')),
                     selected: isSelected,
                     onSelected: (_) => _onVenueTypeSelected(venueType),
-                    backgroundColor: Colors.white,
-                    selectedColor: const Color(0xFF8E24AA),
+                    backgroundColor: Colors.transparent,
+                    selectedColor: const Color(0xFFCCFF00),
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF1A1A1A),
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected ? Colors.black : Colors.white,
+                      fontWeight: FontWeight.w600,
                     ),
                     side: BorderSide(
-                      color: isSelected ? const Color(0xFF8E24AA) : const Color(0xFFE0E0E0),
+                      color: isSelected ? const Color(0xFFCCFF00) : Colors.white24,
                       width: 1,
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
+                    checkmarkColor: Colors.black,
                   ),
                 );
               },
@@ -458,15 +454,9 @@ class _VenueCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: Colors.white12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,30 +469,30 @@ class _VenueCard extends StatelessWidget {
                 child: Container(
                   height: 160,
                   width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0E0E0),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2C2C2C),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                   ),
                   child: venue.imageUrl != null && venue.imageUrl!.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: venue.imageUrl!,
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
-                            color: const Color(0xFFE0E0E0),
+                            color: const Color(0xFF2C2C2C),
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Color(0xFF8E24AA),
+                                color: Color(0xFFCCFF00),
                               ),
                             ),
                           ),
                           errorWidget: (context, url, error) => Container(
-                            color: const Color(0xFFE0E0E0),
+                            color: const Color(0xFF2C2C2C),
                             child: const Icon(Icons.location_city, size: 60, color: Color(0xFF9E9E9E)),
                           ),
                         )
                       : Container(
-                          color: const Color(0xFFE0E0E0),
+                          color: const Color(0xFF2C2C2C),
                           child: const Icon(Icons.location_city, size: 60, color: Color(0xFF9E9E9E)),
                         ),
                 ),
@@ -520,20 +510,20 @@ class _VenueCard extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.95),
+                          color: const Color(0xFFCCFF00),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                              color: const Color(0xFFCCFF00).withOpacity(0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: const Icon(
                           Icons.map,
                           size: 20,
-                          color: Color(0xFF8E24AA),
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -574,7 +564,7 @@ class _VenueCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1A1A),
+                          color: Colors.white,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -609,7 +599,7 @@ class _VenueCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF757575),
+                        color: Color(0xFFB3B3B3),
                       ),
                     ),
                   ),
@@ -622,13 +612,13 @@ class _VenueCard extends StatelessWidget {
                     // Rating
                     Row(
                       children: [
-                        const Icon(Icons.star, size: 16, color: Color(0xFFFFA726)),
+                        const Icon(Icons.star, size: 16, color: Color(0xFFFFC107)),
                         const SizedBox(width: 4),
                         Text(
                           '${venue.rating.toStringAsFixed(1)}',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF757575),
+                            color: Color(0xFFB3B3B3),
                           ),
                         ),
                       ],
@@ -637,13 +627,13 @@ class _VenueCard extends StatelessWidget {
                     // Location
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 16, color: Color(0xFF757575)),
+                        const Icon(Icons.location_on, size: 16, color: Color(0xFFB3B3B3)),
                         const SizedBox(width: 4),
                         Text(
                           venue.city ?? 'Location not specified',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF757575),
+                            color: Color(0xFFB3B3B3),
                           ),
                         ),
                       ],
@@ -659,15 +649,16 @@ class _VenueCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8E24AA).withOpacity(0.1),
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFCCFF00)),
                     ),
                     child: Text(
                       venue.displayType,
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF8E24AA),
+                        color: Color(0xFFCCFF00),
                       ),
                     ),
                   ),

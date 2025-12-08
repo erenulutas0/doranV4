@@ -230,21 +230,25 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => context.go('/explore'),
         ),
-        title: const Text('Hobi Grupları'),
+        title: Text(
+          'Hobi Grupları',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
           // Location filter button
           IconButton(
             icon: Icon(
               _useLocationFilter ? Icons.location_on : Icons.location_off,
-              color: _useLocationFilter ? Colors.purple : Colors.grey,
+              color: _useLocationFilter ? const Color(0xFFCCFF00) : Colors.grey,
             ),
             onPressed: _openLocationFilter,
             tooltip: 'Konum Filtresi',
@@ -308,8 +312,16 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
                       });
                       _loadGroups();
                     },
-                    selectedColor: Colors.purple.withOpacity(0.2),
-                    checkmarkColor: Colors.purple,
+                    backgroundColor: Colors.transparent,
+                    selectedColor: const Color(0xFFCCFF00),
+                    checkmarkColor: Colors.black,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.black : Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    side: BorderSide(
+                      color: isSelected ? const Color(0xFFCCFF00) : Colors.white24,
+                    ),
                   ),
                 );
               },
@@ -340,10 +352,10 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: _loadGroups,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.purple,
-                                foregroundColor: Colors.white,
-                              ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFCCFF00),
+                              foregroundColor: Colors.black,
+                            ),
                               child: const Text('Retry'),
                             ),
                           ],
@@ -506,13 +518,14 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.purple.withOpacity(0.1),
+                          color: Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFCCFF00)),
                         ),
                         child: Text(
                           group.category,
-                          style: TextStyle(
-                            color: Colors.purple[700],
+                          style: const TextStyle(
+                            color: Color(0xFFCCFF00),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -572,7 +585,7 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
                     child: const Icon(
                       Icons.map,
                       size: 20,
-                      color: Color(0xFF8E24AA),
+                    color: Color(0xFFCCFF00),
                     ),
                   ),
                 ),

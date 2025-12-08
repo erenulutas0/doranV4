@@ -69,9 +69,10 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
               ),
             ),
             children: [
-              // OpenStreetMap tiles
+              // Dark map tiles
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                subdomains: const ['a', 'b', 'c', 'd'],
                 userAgentPackageName: 'com.example.ecommerce_app',
               ),
               // Circle overlay for radius

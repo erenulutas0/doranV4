@@ -3,30 +3,24 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Color Palette - Material Design 3
-  static const Color primaryColor = Color(0xFF6750A4);
-  static const Color secondaryColor = Color(0xFF625B71);
-  static const Color tertiaryColor = Color(0xFF7D5260);
+  // Color Palette - Neon Dark
+  static const Color primaryColor = Color(0xFFCCFF00); // Neon Green (acid)
+  static const Color secondaryColor = Color(0xFFCCFF00);
+  static const Color tertiaryColor = Color(0xFFCCFF00);
   static const Color errorColor = Color(0xFFBA1A1A);
   static const Color successColor = Color(0xFF4CAF50);
   static const Color warningColor = Color(0xFFFF9800);
   
-  // Surface Colors
+  // Light theme stays for completeness, but app opens in dark.
   static const Color surfaceColor = Color(0xFFFFFBFE);
   static const Color surfaceVariant = Color(0xFFE7E0EC);
   static const Color onSurface = Color(0xFF1C1B1F);
   static const Color onSurfaceVariant = Color(0xFF49454F);
-  
-  // Background Colors - Saf beyaz arka plan
-  static const Color backgroundColor = Color(0xFFFFFFFF); // Saf beyaz
+  static const Color backgroundColor = Color(0xFFFFFFFF);
   static const Color onBackground = Color(0xFF1C1B1F);
-  
-  // Text Colors
   static const Color textPrimary = Color(0xFF1C1B1F);
   static const Color textSecondary = Color(0xFF49454F);
   static const Color textDisabled = Color(0xFFCAC4D0);
-  
-  // Border & Divider
   static const Color dividerColor = Color(0xFFE7E0EC);
   static const Color borderColor = Color(0xFF79747E);
   
@@ -297,27 +291,39 @@ class AppTheme {
   }
 
   // Dark Theme Colors
-  static const Color darkSurfaceColor = Color(0xFF1C1B1F);
-  static const Color darkSurfaceVariant = Color(0xFF49454F);
-  static const Color darkOnSurface = Color(0xFFE6E1E5);
-  static const Color darkOnSurfaceVariant = Color(0xFFCAC4D0);
-  static const Color darkBackgroundColor = Color(0xFF1C1B1F);
-  static const Color darkCardColor = Color(0xFF2C2B2F);
-  static const Color darkDividerColor = Color(0xFF49454F);
+  static const Color darkSurfaceColor = Color(0xFF1E1E1E);
+  static const Color darkSurfaceVariant = Color(0xFF2C2C2C);
+  static const Color darkOnSurface = Color(0xFFFFFFFF);
+  static const Color darkOnSurfaceVariant = Color(0xFFB3B3B3);
+  static const Color darkBackgroundColor = Color(0xFF000000);
+  static const Color darkCardColor = Color(0xFF1E1E1E);
+  static const Color darkDividerColor = Color(0xFF2A2A2A);
 
   // Dark Theme
   static ThemeData get darkTheme {
-    final darkColorScheme = ColorScheme.fromSeed(
-      seedColor: primaryColor,
+    final darkColorScheme = const ColorScheme(
       brightness: Brightness.dark,
       primary: primaryColor,
+      onPrimary: Colors.black,
       secondary: secondaryColor,
+      onSecondary: Colors.black,
       tertiary: tertiaryColor,
+      onTertiary: Colors.black,
       error: errorColor,
+      onError: Colors.white,
       surface: darkSurfaceColor,
       onSurface: darkOnSurface,
       surfaceVariant: darkSurfaceVariant,
       onSurfaceVariant: darkOnSurfaceVariant,
+      background: darkBackgroundColor,
+      onBackground: darkOnSurface,
+      outline: darkDividerColor,
+      outlineVariant: darkDividerColor,
+      shadow: Colors.black,
+      scrim: Colors.black,
+      inverseSurface: Colors.white10,
+      onInverseSurface: Colors.black,
+      inversePrimary: primaryColor,
     );
 
     return ThemeData(
@@ -357,13 +363,13 @@ class AppTheme {
           side: BorderSide(color: darkDividerColor, width: 1),
         ),
         color: darkCardColor,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: darkSurfaceVariant.withOpacity(0.3),
+        fillColor: darkSurfaceVariant.withOpacity(0.4),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: darkDividerColor),
@@ -396,7 +402,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: Colors.black,
           textStyle: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,

@@ -20,6 +20,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final isMobile = screenWidth < 600;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(isMobile ? 24 : 32),
@@ -33,11 +34,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: const Color(0xFF1E1E1E),
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      color: Colors.black.withOpacity(0.4),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -46,7 +47,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 child: const Icon(
                   Icons.shopping_bag,
                   size: 60,
-                  color: Colors.white,
+                  color: Color(0xFFCCFF00),
                 ),
               ),
               const SizedBox(height: 32),
@@ -55,6 +56,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 'Hoş Geldiniz!',
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -63,7 +65,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               Text(
                 'Ürünleri keşfetmeye başlamak için izinleri onaylayın',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: const Color(0xFFB3B3B3),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -105,8 +107,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   context.go('/explore');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
+                  backgroundColor: const Color(0xFFCCFF00),
+                  foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -129,7 +131,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 },
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: const Color(0xFFCCFF00),
                     width: 1.5,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -142,7 +144,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: const Color(0xFFCCFF00),
                   ),
                 ),
               ),
@@ -178,13 +180,13 @@ class _PermissionCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isGranted
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-              : Theme.of(context).colorScheme.surface,
+              ? const Color(0xFFCCFF00).withOpacity(0.12)
+              : const Color(0xFF1E1E1E),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isGranted
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).dividerColor,
+                ? const Color(0xFFCCFF00)
+                : Colors.white24,
             width: isGranted ? 2 : 1,
           ),
         ),
@@ -194,15 +196,15 @@ class _PermissionCard extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isGranted
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.surfaceVariant,
+                    ? const Color(0xFFCCFF00)
+                    : const Color(0xFF2C2C2C),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
                 color: isGranted
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ? Colors.black
+                    : const Color(0xFFB3B3B3),
                 size: 24,
               ),
             ),
@@ -215,13 +217,14 @@ class _PermissionCard extends StatelessWidget {
                     title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: const Color(0xFFB3B3B3),
                     ),
                   ),
                 ],
@@ -230,8 +233,8 @@ class _PermissionCard extends StatelessWidget {
             Icon(
               isGranted ? Icons.check_circle : Icons.radio_button_unchecked,
               color: isGranted
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ? const Color(0xFFCCFF00)
+                  : const Color(0xFFB3B3B3),
             ),
           ],
         ),

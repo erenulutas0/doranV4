@@ -25,13 +25,17 @@ class NearbyShopsSection extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
               TextButton(
                 onPressed: () {
                   // Navigate to all shops
                 },
-                child: const Text('See All'),
+                child: const Text(
+                  'See All',
+                  style: TextStyle(color: Color(0xFFCCFF00)),
+                ),
               ),
             ],
           ),
@@ -64,14 +68,14 @@ class _ShopCard extends StatelessWidget {
       width: 200,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: const Color(0xFF333333), width: 0.8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -88,19 +92,19 @@ class _ShopCard extends StatelessWidget {
                       imageUrl: shop.displayImage,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: Colors.grey[300],
+                        color: const Color(0xFF2C2C2C),
                         child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFCCFF00)),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.store, size: 40),
+                        color: const Color(0xFF2C2C2C),
+                        child: const Icon(Icons.store, size: 40, color: Colors.white70),
                       ),
                     )
                   : Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.store, size: 40),
+                      color: const Color(0xFF2C2C2C),
+                      child: const Icon(Icons.store, size: 40, color: Colors.white70),
                     ),
             ),
           ),
@@ -117,6 +121,7 @@ class _ShopCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -124,10 +129,10 @@ class _ShopCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.star,
                         size: 16,
-                        color: Colors.amber[700],
+                        color: Color(0xFFFFC107),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -135,22 +140,23 @@ class _ShopCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 8),
                       if (shop.city != null) ...[
-                        Icon(
+                        const Icon(
                           Icons.location_on,
                           size: 14,
-                          color: Colors.grey[600],
+                          color: Color(0xFFB3B3B3),
                         ),
                         const SizedBox(width: 2),
                         Flexible(
                           child: Text(
                             shop.city!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: Color(0xFFB3B3B3),
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),

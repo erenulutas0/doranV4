@@ -22,7 +22,8 @@ class ActionButtons extends StatelessWidget {
                 child: _ActionButton(
                   label: 'Shop',
                   icon: Icons.shopping_bag_outlined,
-                  color: Theme.of(context).colorScheme.primary,
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /shops');
                     context.push('/shops');
@@ -34,7 +35,8 @@ class ActionButtons extends StatelessWidget {
                 child: _ActionButton(
                   label: 'Jobs',
                   icon: Icons.work_outline,
-                  color: Theme.of(context).colorScheme.secondary,
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /jobs');
                     context.push('/jobs');
@@ -48,7 +50,8 @@ class ActionButtons extends StatelessWidget {
                   child: _ActionButton(
                     label: 'Own Product',
                     icon: Icons.add_business_outlined,
-                    color: Colors.orange,
+                    backgroundColor: const Color(0xFF1E1E1E),
+                    accentColor: const Color(0xFFCCFF00),
                     onTap: () {
                       debugPrint('Navigating to /own-products');
                       context.push('/own-products');
@@ -68,7 +71,8 @@ class ActionButtons extends StatelessWidget {
                 child: _ActionButton(
                   label: 'Mekanlar',
                   icon: Icons.location_city_outlined,
-                  color: const Color(0xFF9C27B0), // Purple
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /entertainment');
                     context.push('/entertainment');
@@ -80,7 +84,8 @@ class ActionButtons extends StatelessWidget {
                 child: _ActionButton(
                   label: 'Hobi',
                   icon: Icons.group_outlined,
-                  color: const Color(0xFF00897B), // Teal
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /hobby-groups');
                     context.push('/hobby-groups');
@@ -98,20 +103,22 @@ class ActionButtons extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   final String label;
   final IconData icon;
-  final Color color;
+  final Color backgroundColor;
+  final Color accentColor;
   final VoidCallback onTap;
 
   const _ActionButton({
     required this.label,
     required this.icon,
-    required this.color,
+    required this.backgroundColor,
+    required this.accentColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: color,
+      color: backgroundColor,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       child: InkWell(
@@ -119,21 +126,33 @@ class _ActionButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: accentColor, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withOpacity(0.18),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
-                color: Colors.white,
+                color: accentColor,
                 size: 20,
               ),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: accentColor,
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],

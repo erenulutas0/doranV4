@@ -7,6 +7,10 @@ RUN mvn clean package -DskipTests -f review-service/pom.xml
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+
+# Healthchecks use curl/wget inside the container
+RUN apk add --no-cache curl wget
+
 COPY --from=build /app/review-service/target/review-service-*.jar app.jar
 EXPOSE 8087
 ENTRYPOINT ["java", "-jar", "app.jar"]

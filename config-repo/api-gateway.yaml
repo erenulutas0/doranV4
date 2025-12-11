@@ -16,3 +16,83 @@ spring:
       port: 6379
       timeout: 2000ms
 
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 2000   # ms
+        response-timeout: 5s    # read timeout
+      routes-cache:
+        default-ttl: 60s
+
+gateway:
+  timeouts:
+    connect: 2000    # ms
+    response: 5s     # read timeout
+
+cors:
+  allowed-origins:
+    - http://localhost:8088
+    - http://localhost:8080
+    # Prod örnekleri (gerektiğinde düzenleyin)
+    # - https://app.example.com
+    # - https://admin.example.com
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
+  allowed-headers:
+    - Authorization
+    - Content-Type
+    - X-User-Id
+    - X-API-Version
+  exposed-headers:
+    - X-RateLimit-Remaining
+    - X-RateLimit-Limit
+    - X-RateLimit-Reset
+    - X-Content-Type-Options
+    - X-Frame-Options
+  allow-credentials: true
+  max-age: 3600
+
+rate-limiter:
+  user:
+    replenish: 20
+    burst: 40
+    tokens: 1
+  product:
+    replenish: 30
+    burst: 60
+    tokens: 1
+  order:
+    replenish: 15
+    burst: 30
+    tokens: 1
+  inventory:
+    replenish: 25
+    burst: 50
+    tokens: 1
+  notification:
+    replenish: 20
+    burst: 40
+    tokens: 1
+  review:
+    replenish: 30
+    burst: 60
+    tokens: 1
+  media:
+    replenish: 10
+    burst: 20
+    tokens: 1
+  own-product:
+    replenish: 30
+    burst: 60
+    tokens: 1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-registry:8761/eureka/
+

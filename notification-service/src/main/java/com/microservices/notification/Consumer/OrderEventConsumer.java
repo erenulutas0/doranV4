@@ -3,6 +3,7 @@ package com.microservices.notification.Consumer;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.microservices.notification.Config.RabbitMQConfig;
 import com.microservices.notification.Event.OrderCreatedEvent;
@@ -30,9 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderEventConsumer {
     
     private final NotificationService notificationService;
+    private final MeterRegistry meterRegistry;
 
-    public OrderEventConsumer(NotificationService notificationService) {
+    public OrderEventConsumer(NotificationService notificationService, MeterRegistry meterRegistry) {
         this.notificationService = notificationService;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -60,14 +63,17 @@ public class OrderEventConsumer {
             // Null check
             if (event == null) {
                 log.error("OrderCreatedEvent is null!");
+                meterRegistry.counter("notifications.order.created.fail", "reason", "null_event").increment();
                 return;
             }
             if (event.getOrderId() == null) {
                 log.error("OrderCreatedEvent.orderId is null!");
+                meterRegistry.counter("notifications.order.created.fail", "reason", "orderId_null").increment();
                 return;
             }
             if (event.getUserEmail() == null || event.getUserEmail().isEmpty()) {
                 log.error("OrderCreatedEvent.userEmail is null or empty!");
+                meterRegistry.counter("notifications.order.created.fail", "reason", "userEmail_null").increment();
                 return;
             }
             
@@ -91,8 +97,10 @@ public class OrderEventConsumer {
             // Bildirimi gönder
             notificationService.sendNotification(savedNotification.getId());
             log.info("Order created notification sent for order: {}", event.getOrderId());
+            meterRegistry.counter("notifications.order.created.success").increment();
         } catch (Exception e) {
             log.error("Error processing OrderCreatedEvent for order {}: {}", event.getOrderId(), e.getMessage(), e);
+            meterRegistry.counter("notifications.order.created.fail", "reason", e.getClass().getSimpleName()).increment();
         }
     }
 
@@ -130,9 +138,11 @@ public class OrderEventConsumer {
             // Bildirimi gönder
             notificationService.sendNotification(savedNotification.getId());
             log.info("Order status changed notification sent for order: {}", event.getOrderId());
+            meterRegistry.counter("notifications.order.status.success").increment();
         } catch (Exception e) {
             log.error("Error processing OrderStatusChangedEvent for order {}: {}", 
                 event.getOrderId(), e.getMessage(), e);
+            meterRegistry.counter("notifications.order.status.fail", "reason", e.getClass().getSimpleName()).increment();
         }
     }
 

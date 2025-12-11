@@ -4,6 +4,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange; // DirectExchange import'u eklendi
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
@@ -24,19 +25,26 @@ public class RabbitMQConfig {
 
     // KODU TAMAMLAMAK İÇİN EKLENEN SABİTLER
     public static final String ORDER_EXCHANGE = "order.events.exchange";
+    public static final String ORDER_DLX = "order.events.dlx";
     public static final String ROUTING_KEY_CREATED = "order.created.key";
     public static final String ROUTING_KEY_STATUS_CHANGED = "order.status.changed.key";
+    public static final String ROUTING_KEY_DLQ = "order.dlq";
     
     // Queue isimleri (Order Service ile aynı olmalı)
     public static final String ORDER_CREATED_QUEUE = "order.created";
     public static final String ORDER_STATUS_CHANGED_QUEUE = "order.status.changed";
+    public static final String ORDER_CREATED_DLQ = "order.created.dlq";
+    public static final String ORDER_STATUS_CHANGED_DLQ = "order.status.changed.dlq";
 
     /**
      * Order Created Queue
      */
     @Bean
     public Queue orderCreatedQueue() {
-        return new Queue(ORDER_CREATED_QUEUE, true); // durable: true
+        return QueueBuilder.durable(ORDER_CREATED_QUEUE)
+                .withArgument("x-dead-letter-exchange", ORDER_DLX)
+                .withArgument("x-dead-letter-routing-key", ROUTING_KEY_DLQ)
+                .build();
     }
 
     /**
@@ -44,7 +52,10 @@ public class RabbitMQConfig {
      */
     @Bean
     public Queue orderStatusChangedQueue() {
-        return new Queue(ORDER_STATUS_CHANGED_QUEUE, true);
+        return QueueBuilder.durable(ORDER_STATUS_CHANGED_QUEUE)
+                .withArgument("x-dead-letter-exchange", ORDER_DLX)
+                .withArgument("x-dead-letter-routing-key", ROUTING_KEY_DLQ)
+                .build();
     }
 
     // YENİ EKLENEN EXCHANGE VE BINDING TANIMLARI
@@ -56,6 +67,11 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange orderExchange() {
         return new DirectExchange(ORDER_EXCHANGE);
+    }
+
+    @Bean
+    public DirectExchange orderDlx() {
+        return new DirectExchange(ORDER_DLX);
     }
 
     /**
@@ -76,6 +92,31 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(orderStatusChangedQueue)
                              .to(orderExchange)
                              .with(ROUTING_KEY_STATUS_CHANGED); // Producer ile eşleşmeli
+    }
+
+    // DLQ bindings
+    @Bean
+    public Queue orderCreatedDlq() {
+        return QueueBuilder.durable(ORDER_CREATED_DLQ).build();
+    }
+
+    @Bean
+    public Queue orderStatusChangedDlq() {
+        return QueueBuilder.durable(ORDER_STATUS_CHANGED_DLQ).build();
+    }
+
+    @Bean
+    public Binding createdDlqBinding(@Qualifier("orderCreatedDlq") Queue dlq, DirectExchange orderDlx) {
+        return BindingBuilder.bind(dlq)
+                             .to(orderDlx)
+                             .with(ROUTING_KEY_DLQ);
+    }
+
+    @Bean
+    public Binding statusChangedDlqBinding(@Qualifier("orderStatusChangedDlq") Queue dlq, DirectExchange orderDlx) {
+        return BindingBuilder.bind(dlq)
+                             .to(orderDlx)
+                             .with(ROUTING_KEY_DLQ);
     }
 
     // --- Mesaj Dönüştürücüler ---

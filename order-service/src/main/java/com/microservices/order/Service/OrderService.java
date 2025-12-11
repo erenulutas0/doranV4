@@ -12,6 +12,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
 
 import com.microservices.order.Client.InventoryServiceClient;
 import com.microservices.order.Client.ProductServiceClient;
@@ -49,6 +52,7 @@ public class OrderService {
     private final UserServiceClient userServiceClient;
     private final RabbitTemplate rabbitTemplate;
     private final OrderWebSocketController webSocketController;
+    private final MeterRegistry meterRegistry;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -56,13 +60,15 @@ public class OrderService {
             InventoryServiceClient inventoryServiceClient,
             UserServiceClient userServiceClient,
             RabbitTemplate rabbitTemplate,
-            OrderWebSocketController webSocketController) {
+            OrderWebSocketController webSocketController,
+            MeterRegistry meterRegistry) {
         this.orderRepository = orderRepository;
         this.productServiceClient = productServiceClient;
         this.inventoryServiceClient = inventoryServiceClient;
         this.userServiceClient = userServiceClient;
         this.rabbitTemplate = rabbitTemplate;
         this.webSocketController = webSocketController;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -124,12 +130,18 @@ public class OrderService {
     @Transactional
     @CacheEvict(value = "orders", key = "'user:' + #order.userId.toString()")  // Kullanıcının sipariş listesi cache'ini temizle
     public Order createOrder(Order order) {
+        Sample sample = Timer.start(meterRegistry);
         // 1. Kullanıcı doğrulama
         UserServiceClient.UserResponse user;
         try {
             user = userServiceClient.getUserById(order.getUserId());
         } catch (FeignException.NotFound e) {
+            meterRegistry.counter("orders.created.fail", "exception", "UserNotFound").increment();
             throw new ResourceNotFoundException("User", "id", order.getUserId());
+        } catch (RuntimeException e) {
+            meterRegistry.counter("orders.created.fail", "exception", e.getClass().getSimpleName()).increment();
+            sample.stop(Timer.builder("orders.created.duration").register(meterRegistry));
+            throw e;
         }
         
         if (user == null) {
@@ -163,6 +175,8 @@ public class OrderService {
             try {
                 product = productServiceClient.getProductById(productId);
             } catch (FeignException.NotFound e) {
+                meterRegistry.counter("orders.created.fail", "exception", "ProductNotFound").increment();
+                sample.stop(Timer.builder("orders.created.duration").register(meterRegistry));
                 throw new ResourceNotFoundException("Product", "id", productId);
             }
             if (product == null) {
@@ -175,6 +189,8 @@ public class OrderService {
             try {
                 inventory = inventoryServiceClient.getInventoryByProductId(productId);
             } catch (FeignException.NotFound e) {
+                meterRegistry.counter("orders.created.fail", "exception", "InventoryNotFound").increment();
+                sample.stop(Timer.builder("orders.created.duration").register(meterRegistry));
                 throw new ResourceNotFoundException("Inventory", "productId", productId);
             }
             if (inventory == null) {
@@ -228,6 +244,7 @@ public class OrderService {
         
         // 5. Siparişi kaydet
         Order savedOrder = orderRepository.save(order);
+        meterRegistry.counter("orders.created.count").increment();
         
         // 6. RabbitMQ'ya OrderCreatedEvent gönder (asenkron)
         // OrderItems'ı initialize etmek için order'ı yeniden fetch et
@@ -241,7 +258,7 @@ public class OrderService {
             System.err.println("Error sending OrderCreatedEvent: " + e.getMessage());
             e.printStackTrace();
         }
-        
+        sample.stop(Timer.builder("orders.created.duration").register(meterRegistry));
         return savedOrder;
     }
     
@@ -335,6 +352,14 @@ public class OrderService {
         OrderStatus oldStatus = order.getStatus();
         order.updateStatus(newStatus);
         Order savedOrder = orderRepository.save(order);
+        meterRegistry.counter("orders.status.change.count", "to", newStatus.name()).increment();
+
+        // Success/failure funnels
+        if (newStatus == OrderStatus.DELIVERED) {
+            meterRegistry.counter("orders.delivered.count").increment();
+        } else if (newStatus == OrderStatus.CANCELLED) {
+            meterRegistry.counter("orders.cancelled.count").increment();
+        }
         
         // RabbitMQ'ya OrderStatusChangedEvent gönder (asenkron)
         try {

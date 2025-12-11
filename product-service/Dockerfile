@@ -17,6 +17,9 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
+# Healthchecks use curl/wget inside the container
+RUN apk add --no-cache curl wget
+
 # Copy the built JAR
 COPY --from=build /app/product-service/target/*.jar app.jar
 

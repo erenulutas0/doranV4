@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,14 +22,20 @@ public class MediaService {
     
     private final StorageService storageService;
     private final MediaRepository mediaRepository;
+    private final MeterRegistry meterRegistry;
     
     @Transactional
     public MediaResponse uploadMedia(MultipartFile file, UUID uploadedBy) throws IOException {
         log.info("Uploading media: {} by user: {}", file.getOriginalFilename(), uploadedBy);
         
-        Media media = storageService.store(file, uploadedBy);
-        
-        return MediaResponse.fromEntity(media);
+        try {
+            Media media = storageService.store(file, uploadedBy);
+            meterRegistry.counter("media.upload.success").increment();
+            return MediaResponse.fromEntity(media);
+        } catch (IOException e) {
+            meterRegistry.counter("media.upload.fail", "reason", e.getClass().getSimpleName()).increment();
+            throw e;
+        }
     }
     
     @Transactional
@@ -41,6 +48,7 @@ public class MediaService {
                         return uploadMedia(file, uploadedBy);
                     } catch (IOException e) {
                         log.error("Failed to upload file: {}", file.getOriginalFilename(), e);
+                        meterRegistry.counter("media.upload.fail", "reason", e.getClass().getSimpleName()).increment();
                         throw new RuntimeException("Failed to upload file: " + file.getOriginalFilename(), e);
                     }
                 })

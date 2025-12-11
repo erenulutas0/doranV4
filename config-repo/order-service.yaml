@@ -19,6 +19,7 @@ spring:
     password: guest
     listener:
       simple:
+        default-requeue-rejected: false
         acknowledge-mode: auto
         retry:
           enabled: true

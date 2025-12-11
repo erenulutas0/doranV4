@@ -2,8 +2,14 @@
 # Ortak Yapılandırma (Tüm Servisler İçin)
 # ============================================
 
-# PostgreSQL Connection Pool (Ortak)
+server:
+  shutdown: graceful
+
 spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+  # PostgreSQL Connection Pool (Ortak)
   datasource:
     driver-class-name: org.postgresql.Driver
     username: postgres
@@ -29,7 +35,7 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
-
+  
   # Flyway Database Migration (Ortak)
   flyway:
     enabled: true
@@ -64,20 +70,35 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
   tracing:
     sampling:
       probability: 1.0  # %100 sampling (production'da düşürülebilir)
   zipkin:
     tracing:
       endpoint: http://zipkin:9411/api/v2/spans  # Zipkin server URL
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
 
 # Redis Cache Configuration (Ortak)
   cache:
     type: redis  # Redis'i cache provider olarak kullan
+    redis:
+      time-to-live: 600000  # 10 dakika default TTL
   data:
     redis:
       host: redis

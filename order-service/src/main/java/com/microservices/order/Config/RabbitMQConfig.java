@@ -14,6 +14,9 @@ import org.springframework.context.annotation.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * RabbitMQ Configuration
  * 
@@ -31,14 +34,18 @@ public class RabbitMQConfig {
 
     // Exchange ismi (Notification Service ile aynı olmalı)
     public static final String ORDER_EXCHANGE = "order.events.exchange";
+    public static final String ORDER_DLX = "order.events.dlx";
     
     // Routing Key'ler (Notification Service ile aynı olmalı)
     public static final String ROUTING_KEY_CREATED = "order.created.key";
     public static final String ROUTING_KEY_STATUS_CHANGED = "order.status.changed.key";
+    public static final String ROUTING_KEY_DLQ = "order.dlq";
     
     // Queue isimleri
     public static final String ORDER_CREATED_QUEUE = "order.created";
     public static final String ORDER_STATUS_CHANGED_QUEUE = "order.status.changed";
+    public static final String ORDER_CREATED_DLQ = "order.created.dlq";
+    public static final String ORDER_STATUS_CHANGED_DLQ = "order.status.changed.dlq";
 
     /**
      * Order Created Queue
@@ -46,7 +53,10 @@ public class RabbitMQConfig {
      */
     @Bean
     public Queue orderCreatedQueue() {
-        return new Queue(ORDER_CREATED_QUEUE, true);  // durable: true (RabbitMQ restart olsa bile queue kalır)
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", ORDER_DLX);
+        args.put("x-dead-letter-routing-key", ROUTING_KEY_DLQ);
+        return new Queue(ORDER_CREATED_QUEUE, true, false, false, args);  // durable: true
     }
 
     /**
@@ -55,7 +65,10 @@ public class RabbitMQConfig {
      */
     @Bean
     public Queue orderStatusChangedQueue() {
-        return new Queue(ORDER_STATUS_CHANGED_QUEUE, true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", ORDER_DLX);
+        args.put("x-dead-letter-routing-key", ROUTING_KEY_DLQ);
+        return new Queue(ORDER_STATUS_CHANGED_QUEUE, true, false, false, args);
     }
 
     /**
@@ -65,6 +78,11 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange orderExchange() {
         return new DirectExchange(ORDER_EXCHANGE, true, false); // durable: true, auto-delete: false
+    }
+
+    @Bean
+    public DirectExchange orderDlx() {
+        return new DirectExchange(ORDER_DLX, true, false);
     }
 
     /**
@@ -87,6 +105,31 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(orderStatusChangedQueue)
                              .to(orderExchange)
                              .with(ROUTING_KEY_STATUS_CHANGED);
+    }
+
+    // DLQ queues and bindings
+    @Bean
+    public Queue orderCreatedDlq() {
+        return new Queue(ORDER_CREATED_DLQ, true);
+    }
+
+    @Bean
+    public Queue orderStatusChangedDlq() {
+        return new Queue(ORDER_STATUS_CHANGED_DLQ, true);
+    }
+
+    @Bean
+    public Binding orderCreatedDlqBinding(@Qualifier("orderCreatedDlq") Queue dlq, DirectExchange orderDlx) {
+        return BindingBuilder.bind(dlq)
+                             .to(orderDlx)
+                             .with(ROUTING_KEY_DLQ);
+    }
+
+    @Bean
+    public Binding orderStatusChangedDlqBinding(@Qualifier("orderStatusChangedDlq") Queue dlq, DirectExchange orderDlx) {
+        return BindingBuilder.bind(dlq)
+                             .to(orderDlx)
+                             .with(ROUTING_KEY_DLQ);
     }
 
     /**

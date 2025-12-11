@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import io.micrometer.core.instrument.MeterRegistry;
 
 import com.microservices.inventory.Exception.DuplicateResourceException;
 import com.microservices.inventory.Exception.ResourceNotFoundException;
@@ -28,9 +29,11 @@ import com.microservices.inventory.Repository.InventoryRepository;
 @Service
 public class InventoryService {
     private final InventoryRepository inventoryRepository;
+    private final MeterRegistry meterRegistry;
 
-    public InventoryService(InventoryRepository inventoryRepository) {
+    public InventoryService(InventoryRepository inventoryRepository, MeterRegistry meterRegistry) {
         this.inventoryRepository = inventoryRepository;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -192,6 +195,7 @@ public class InventoryService {
         
         // Stok yeterli mi kontrolü
         if (!inventory.hasEnoughStock(quantity)) {
+            meterRegistry.counter("inventory.reserve.fail", "reason", "insufficient").increment();
             throw new IllegalArgumentException(
                 String.format("Insufficient stock. Available: %d, Required: %d", 
                     inventory.getAvailableQuantity(), quantity));
@@ -202,6 +206,7 @@ public class InventoryService {
                                    inventory.getReservedQuantity() : 0) + quantity;
         inventory.setReservedQuantity(newReservedQuantity);
         
+        meterRegistry.counter("inventory.reserve.success").increment();
         // Status otomatik hesaplanır (@PreUpdate)
         return inventoryRepository.save(inventory);
     }
@@ -222,6 +227,7 @@ public class InventoryService {
                              inventory.getReservedQuantity() : 0;
         
         if (currentReserved < quantity) {
+            meterRegistry.counter("inventory.release.fail", "reason", "over_release").increment();
             throw new IllegalArgumentException(
                 String.format("Cannot release more than reserved. Reserved: %d, Requested: %d", 
                     currentReserved, quantity));
@@ -230,6 +236,7 @@ public class InventoryService {
         // Rezerve edilmiş miktarı azalt
         inventory.setReservedQuantity(currentReserved - quantity);
         
+        meterRegistry.counter("inventory.release.success").increment();
         // Status otomatik hesaplanır (@PreUpdate)
         return inventoryRepository.save(inventory);
     }

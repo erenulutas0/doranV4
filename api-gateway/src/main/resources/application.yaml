@@ -16,6 +16,9 @@ spring:
   cloud:
     gateway:
       # CORS is handled by CorsConfig.java bean
+      httpclient:
+        connect-timeout: ${gateway.timeouts.connect:2000}   # ms
+        response-timeout: ${gateway.timeouts.response:5s}   # read timeout
       
       # Default filters (tüm route'lar için geçerli)
       default-filters:
@@ -42,9 +45,9 @@ spring:
             # Rate Limiting
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 20  # User service için daha yüksek limit
-                redis-rate-limiter.burstCapacity: 40
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.user.replenish:20}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.user.burst:40}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.user.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             # CircuitBreaker
             - name: CircuitBreaker
@@ -59,12 +62,13 @@ spring:
             - Path=/api/products/**
           filters:
             - StripPrefix=1  # /api kısmını çıkarır
+            - AddResponseHeader=Cache-Control, public, max-age=60
             # Rate Limiting (Product Service için özel limit)
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 30  # Product service için daha yüksek limit
-                redis-rate-limiter.burstCapacity: 60
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.product.replenish:30}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.product.burst:60}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.product.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
@@ -81,9 +85,9 @@ spring:
             # Rate Limiting (Order Service için özel limit)
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 15  # Order service için orta limit
-                redis-rate-limiter.burstCapacity: 30
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.order.replenish:15}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.order.burst:30}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.order.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
@@ -100,9 +104,9 @@ spring:
             # Rate Limiting (Inventory Service için özel limit)
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 25  # Inventory service için yüksek limit
-                redis-rate-limiter.burstCapacity: 50
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.inventory.replenish:25}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.inventory.burst:50}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.inventory.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
@@ -119,9 +123,9 @@ spring:
             # Rate Limiting (Notification Service için özel limit)
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 20  # Notification service için orta limit
-                redis-rate-limiter.burstCapacity: 40
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.notification.replenish:20}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.notification.burst:40}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.notification.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
@@ -139,9 +143,9 @@ spring:
             # Rate Limiting (Review Service için özel limit)
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 30  # Review service için yüksek limit (okuma yoğun)
-                redis-rate-limiter.burstCapacity: 60
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.review.replenish:30}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.review.burst:60}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.review.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
@@ -159,9 +163,9 @@ spring:
             # Rate Limiting (Media Service için özel limit - dosya upload yoğun)
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10  # Media service için düşük limit (upload yoğun)
-                redis-rate-limiter.burstCapacity: 20
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.media.replenish:10}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.media.burst:20}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.media.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
@@ -179,9 +183,9 @@ spring:
             # Rate Limiting (Own Product Service için özel limit)
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 30  # Own Product service için yüksek limit (okuma yoğun)
-                redis-rate-limiter.burstCapacity: 60
-                redis-rate-limiter.requestedTokens: 1
+                redis-rate-limiter.replenishRate: ${rate-limiter.own-product.replenish:30}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.own-product.burst:60}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.own-product.tokens:1}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:
@@ -195,6 +199,7 @@ spring:
             - Path=/api/v1/shops/**
           filters:
             - StripPrefix=2  # /api/v1 kısmını çıkarır, /shops/** kalır
+            - AddResponseHeader=Cache-Control, public, max-age=60
             - AddRequestHeader=X-API-Version, v1
             - name: CircuitBreaker
               args:
@@ -208,6 +213,7 @@ spring:
             - Path=/api/v1/jobs/**
           filters:
             - StripPrefix=2  # /api/v1 kısmını çıkarır, /jobs/** kalır
+            - AddResponseHeader=Cache-Control, public, max-age=60
             - AddRequestHeader=X-API-Version, v1
             - name: CircuitBreaker
               args:
@@ -221,6 +227,7 @@ spring:
             - Path=/api/v1/hobby-groups/**
           filters:
             - StripPrefix=2  # /api/v1 kısmını çıkarır, /hobby-groups/** kalır
+            - AddResponseHeader=Cache-Control, public, max-age=60
             - AddRequestHeader=X-API-Version, v1
             - name: CircuitBreaker
               args:
@@ -234,6 +241,7 @@ spring:
             - Path=/api/v1/venues/**,/api/v1/events/**
           filters:
             - StripPrefix=2  # /api/v1 kısmını çıkarır
+            - AddResponseHeader=Cache-Control, public, max-age=60
             - AddRequestHeader=X-API-Version, v1
             - name: CircuitBreaker
               args:
@@ -244,7 +252,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/  # Service Registry'nin adresi
+      defaultZone: http://service-registry:8761/eureka/  # Service Registry'nin adresi
 
 # Resilience4j Circuit Breaker Yapılandırması (Gateway seviyesinde)
 resilience4j:

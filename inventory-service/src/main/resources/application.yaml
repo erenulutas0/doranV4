@@ -7,7 +7,7 @@ spring:
   
   datasource:
     # PostgreSQL veritabanı bağlantısı
-    url: jdbc:postgresql://localhost:5432/inventory_db
+    url: jdbc:postgresql://postgres:5432/inventory_db
     driver-class-name: org.postgresql.Driver
     username: postgres  # PostgreSQL kullanıcı adı (kendi şifrenizi girin)
     password: postgres  # PostgreSQL şifresi (kendi şifrenizi girin)
@@ -21,7 +21,7 @@ spring:
   
   jpa:
     hibernate:
-      ddl-auto: update  # Tabloları otomatik güncelle
+      ddl-auto: validate  # Prod için şema doğrulama
     show-sql: true  # SQL sorgularını console'da göster
     properties:
       hibernate:
@@ -36,7 +36,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/  # Service Registry'nin adresi
+      defaultZone: http://service-registry:8761/eureka/  # Service Registry'nin adresi
 
 # Swagger/OpenAPI Yapılandırması
 springdoc:

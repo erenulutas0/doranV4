@@ -250,6 +250,9 @@ public class Order {
         if (newStatus == OrderStatus.DELIVERED && deliveryDate == null) {
             deliveryDate = LocalDateTime.now();
         }
+        if ((newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.REFUNDED) && deliveryDate != null) {
+            // keep deliveryDate as historical; no change needed
+        }
     }
 }
 

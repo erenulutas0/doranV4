@@ -1,0 +1,38 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: search-service
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://elasticsearch:9200}
+  cloud:
+    config:
+      uri: http://config-server:8888
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+product:
+  service:
+    base-url: ${PRODUCT_SERVICE_BASE_URL:http://product-service:8082/products}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-registry:8761/eureka/
+  instance:
+    hostname: search-service
+    prefer-ip-address: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+

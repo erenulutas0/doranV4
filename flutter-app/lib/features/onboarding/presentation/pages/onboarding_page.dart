@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/services/location_service.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -13,6 +14,36 @@ class OnboardingPage extends StatefulWidget {
 class _OnboardingPageState extends State<OnboardingPage> {
   bool _locationPermissionGranted = false;
   bool _notificationPermissionGranted = false;
+  bool _isLocating = false;
+  String? _cityPreview;
+
+  Future<void> _requestLocationWithMessage() async {
+    setState(() {
+      _isLocating = true;
+    });
+    final snap = await LocationService.getFast(requestPermission: true);
+    if (!mounted) return;
+    setState(() {
+      _isLocating = false;
+      _locationPermissionGranted = snap != null;
+      _cityPreview = snap?.city;
+    });
+    if (snap != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            snap.city != null ? 'Konum kaydedildi: ${snap.city}' : 'Konum kaydedildi',
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Konum alınamadı. İzin verip tekrar deneyin.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +100,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 16),
+              if (_isLocating)
+                const Text(
+                  'Konumunuz alınıyor...',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFFCCFF00), fontWeight: FontWeight.w600),
+                )
+              else if (_cityPreview != null)
+                Text(
+                  'Tespit edilen şehir: $_cityPreview',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70),
+                ),
               const SizedBox(height: 48),
 
               // İzinler
@@ -78,9 +122,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 description: 'Size en yakın ürünleri ve teslimat seçeneklerini göstermek için',
                 isGranted: _locationPermissionGranted,
                 onTap: () {
-                  setState(() {
-                    _locationPermissionGranted = !_locationPermissionGranted;
-                  });
+                  if (_isLocating) return;
+                  _requestLocationWithMessage();
                 },
               ),
               const SizedBox(height: 16),
@@ -145,6 +188,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFFCCFF00),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  final authProvider = context.read<AuthProvider>();
+                  authProvider.enableGuestMode();
+                  context.go('/home');
+                },
+                child: const Text(
+                  'Ana Sayfaya Geç',
+                  style: TextStyle(
+                    color: Color(0xFFCCFF00),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

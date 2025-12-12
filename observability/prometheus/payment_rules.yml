@@ -1,0 +1,91 @@
+# Recording and alerting rules for payments/refunds/order funnel
+# Assumes Micrometer Prometheus naming (counter: *_total, timer: *_seconds_*).
+
+groups:
+  - name: payments-recording
+    interval: 30s
+    rules:
+      # Volume
+      - record: payments:success_rate_5m
+        expr: |
+          sum(rate(orders_payment_success_count_total[5m]))
+          /
+          (
+            sum(rate(orders_payment_success_count_total[5m]))
+            +
+            sum(rate(orders_payment_fail_count_total[5m]))
+          )
+      - record: payments:fail_rate_5m
+        expr: |
+          sum(rate(orders_payment_fail_count_total[5m]))
+          /
+          clamp_min(
+            sum(rate(orders_payment_success_count_total[5m]))
+            +
+            sum(rate(orders_payment_fail_count_total[5m])),
+            1e-6
+          )
+      - record: payments:volume_5m
+        expr: |
+          sum(rate(orders_payment_success_count_total[5m])) + sum(rate(orders_payment_fail_count_total[5m]))
+
+      # Refunds
+      - record: refunds:success_rate_5m
+        expr: |
+          sum(rate(orders_refunded_count_total[5m]))
+          /
+          clamp_min(
+            sum(rate(orders_refunded_count_total[5m])) + sum(rate(orders_refund_request_count_total[5m])),
+            1e-6
+          )
+      - record: refunds:volume_5m
+        expr: |
+          sum(rate(orders_refund_request_count_total[5m]))
+
+      # Order funnel
+      - record: orders:created_rate_5m
+        expr: sum(rate(orders_created_count_total[5m]))
+      - record: orders:cancelled_rate_5m
+        expr: sum(rate(orders_cancelled_count_total[5m]))
+      - record: orders:delivered_rate_5m
+        expr: sum(rate(orders_delivered_count_total[5m]))
+
+  - name: payments-alerts
+    interval: 30s
+    rules:
+      - alert: PaymentSuccessRateLow
+        expr: payments:success_rate_5m < 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Payment success rate degraded (<90%)"
+          description: "payments:success_rate_5m is {{ $value | printf \"%.2f\" }} over the last 10m."
+
+      - alert: PaymentFailureSpike
+        expr: sum(rate(orders_payment_fail_count_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment failures spiking"
+          description: "Failure rate >0.1/s over 5m ({{ $value | printf \"%.2f\" }})."
+
+      - alert: RefundSuccessRateLow
+        expr: refunds:success_rate_5m < 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Refund success rate low (<80%)"
+          description: "refunds:success_rate_5m is {{ $value | printf \"%.2f\" }} over the last 10m."
+
+      - alert: PaymentTrafficDrop
+        expr: payments:volume_5m < 0.01
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Payment traffic near zero"
+          description: "Payments volume <0.01/s over 15m; check upstream checkout traffic."
+

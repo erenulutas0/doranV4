@@ -4,12 +4,14 @@ class LocationHeader extends StatelessWidget {
   final String location;
   final String address;
   final VoidCallback? onLocationTap;
+  final VoidCallback? onRefreshTap;
 
   const LocationHeader({
     super.key,
     required this.location,
     required this.address,
     this.onLocationTap,
+    this.onRefreshTap,
   });
 
   @override
@@ -83,8 +85,9 @@ class LocationHeader extends StatelessWidget {
             ),
             // Edit Icon
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
-              onPressed: onLocationTap,
+              icon: const Icon(Icons.my_location, color: Colors.white, size: 20),
+              tooltip: 'Konumu güncelle',
+              onPressed: onRefreshTap ?? onLocationTap,
             ),
           ],
         ),

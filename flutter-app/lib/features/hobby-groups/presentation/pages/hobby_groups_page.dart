@@ -9,7 +9,8 @@ import '../../../../core/widgets/location_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 
 class HobbyGroupsPage extends StatefulWidget {
-  const HobbyGroupsPage({super.key});
+  final String? initialCity;
+  const HobbyGroupsPage({super.key, this.initialCity});
 
   @override
   State<HobbyGroupsPage> createState() => _HobbyGroupsPageState();
@@ -24,6 +25,7 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
   String? _selectedLocation;
   final TextEditingController _searchController = TextEditingController();
   final List<String> _categories = ['All', 'Sports', 'Arts', 'Music', 'Gaming', 'Reading', 'Cooking', 'Travel', 'Photography', 'Other'];
+  String? _initialCity;
   
   // Location filter state
   bool _useLocationFilter = false;
@@ -34,6 +36,10 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
   @override
   void initState() {
     super.initState();
+    _initialCity = widget.initialCity;
+    if (_initialCity != null) {
+      _selectedLocation = _initialCity;
+    }
     _loadGroups();
   }
 
@@ -74,7 +80,7 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
         // Use regular search
         groups = await _apiService.getHobbyGroups(
           category: _selectedCategory == 'All' ? null : _selectedCategory,
-          location: _selectedLocation,
+          location: _selectedLocation ?? _initialCity,
           search: _searchController.text.isEmpty ? null : _searchController.text,
         );
       }

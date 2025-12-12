@@ -568,6 +568,35 @@ services:
       timeout: 10s
       retries: 5
 
+  # Search Service
+  search-service:
+    build:
+      context: .
+      dockerfile: search-service/Dockerfile
+    container_name: search-service
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://service-registry:8761/eureka/
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      ELASTICSEARCH_URIS: http://elasticsearch:9200
+      PRODUCT_SERVICE_BASE_URL: http://product-service:8082/products
+    networks:
+      - microservices-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8089/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   # API Gateway
   api-gateway:
     build:

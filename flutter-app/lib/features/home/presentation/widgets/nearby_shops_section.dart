@@ -12,47 +12,17 @@ class NearbyShopsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Nearby Shops',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Navigate to all shops
-                },
-                child: const Text(
-                  'See All',
-                  style: TextStyle(color: Color(0xFFCCFF00)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: shops.length,
-            itemBuilder: (context, index) {
-              final shop = shops[index];
-              return _ShopCard(shop: shop);
-            },
-          ),
-        ),
-      ],
+    return SizedBox(
+      height: 280,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: shops.length,
+        itemBuilder: (context, index) {
+          final shop = shops[index];
+          return _ShopCard(shop: shop);
+        },
+      ),
     );
   }
 }

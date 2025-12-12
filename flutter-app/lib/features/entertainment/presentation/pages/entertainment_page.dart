@@ -8,7 +8,8 @@ import '../../../../core/widgets/location_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 
 class EntertainmentPage extends StatefulWidget {
-  const EntertainmentPage({super.key});
+  final String? initialCity;
+  const EntertainmentPage({super.key, this.initialCity});
 
   @override
   State<EntertainmentPage> createState() => _EntertainmentPageState();
@@ -21,6 +22,7 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
   final ApiService _apiService = ApiService();
   String _selectedVenueType = 'All';
   final TextEditingController _searchController = TextEditingController();
+  String? _initialCity;
 
   final List<String> _venueTypes = ['All', 'RESTAURANT', 'CAFE', 'BAR', 'CLUB', 'THEATER', 'CINEMA', 'SPORTS', 'OTHER'];
   
@@ -33,6 +35,7 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
   @override
   void initState() {
     super.initState();
+    _initialCity = widget.initialCity;
     _loadVenues();
   }
 
@@ -72,11 +75,18 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
         fetchedVenues = await _apiService.getVenues(
           venueType: venueType == 'All' ? null : venueType,
           search: search,
+          city: _initialCity,
         );
       }
       
       setState(() {
-        _venues = fetchedVenues;
+        if (_initialCity != null) {
+          final city = _initialCity!.toLowerCase();
+          final filtered = fetchedVenues.where((v) => (v.city ?? '').toLowerCase().contains(city)).toList();
+          _venues = filtered.isNotEmpty ? filtered : fetchedVenues;
+        } else {
+          _venues = fetchedVenues;
+        }
         _isLoading = false;
       });
     } catch (e) {

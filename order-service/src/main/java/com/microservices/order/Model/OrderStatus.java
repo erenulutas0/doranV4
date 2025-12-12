@@ -26,6 +26,18 @@ public enum OrderStatus {
      * Ödeme bekleniyor veya yapıldı
      */
     CONFIRMED("Onaylandı"),
+
+    /**
+     * Ödeme bekleniyor
+     * Ödeme sağlayıcısı yanıtı gelmedi/işleniyor
+     */
+    PAYMENT_PENDING("Ödeme bekleniyor"),
+
+    /**
+     * Ödeme başarısız
+     * Stok rezervi varsa geri bırakılmalı
+     */
+    PAYMENT_FAILED("Ödeme başarısız"),
     
     /**
      * İşleniyor
@@ -45,6 +57,16 @@ public enum OrderStatus {
      * Sipariş müşteriye ulaştı
      */
     DELIVERED("Teslim edildi"),
+
+    /**
+     * İade/geri ödeme talep edildi
+     */
+    REFUND_REQUESTED("İade talep edildi"),
+
+    /**
+     * İade/geri ödeme tamamlandı
+     */
+    REFUNDED("İade tamamlandı"),
     
     /**
      * İptal edildi

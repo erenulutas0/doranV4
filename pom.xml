@@ -23,6 +23,7 @@
         <module>inventory-service</module>
         <module>notification-service</module>
         <module>review-service</module>
+        <module>search-service</module>
     </modules>
 
     <properties>

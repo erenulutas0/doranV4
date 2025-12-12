@@ -165,6 +165,56 @@ public class OrderController {
     }
 
     /**
+     * Ödeme başlatıldı (payment intent created)
+     * PATCH /orders/{id}/payment/pending
+     */
+    @PatchMapping("/{id}/payment/pending")
+    public ResponseEntity<Order> markPaymentPending(@PathVariable("id") UUID id) {
+        Order order = orderService.markPaymentPending(id);
+        return ResponseEntity.ok(order);
+    }
+
+    /**
+     * Ödeme başarılı callback
+     * PATCH /orders/{id}/payment/success
+     */
+    @PatchMapping("/{id}/payment/success")
+    public ResponseEntity<Order> markPaymentSuccess(@PathVariable("id") UUID id) {
+        Order order = orderService.markPaymentSuccess(id);
+        return ResponseEntity.ok(order);
+    }
+
+    /**
+     * Ödeme başarısız callback
+     * PATCH /orders/{id}/payment/failed
+     */
+    @PatchMapping("/{id}/payment/failed")
+    public ResponseEntity<Order> markPaymentFailed(@PathVariable("id") UUID id) {
+        Order order = orderService.markPaymentFailed(id);
+        return ResponseEntity.ok(order);
+    }
+
+    /**
+     * İade talebi
+     * PATCH /orders/{id}/refund/request
+     */
+    @PatchMapping("/{id}/refund/request")
+    public ResponseEntity<Order> requestRefund(@PathVariable("id") UUID id) {
+        Order order = orderService.requestRefund(id);
+        return ResponseEntity.ok(order);
+    }
+
+    /**
+     * İade onayı
+     * PATCH /orders/{id}/refund/approve
+     */
+    @PatchMapping("/{id}/refund/approve")
+    public ResponseEntity<Order> approveRefund(@PathVariable("id") UUID id) {
+        Order order = orderService.approveRefund(id);
+        return ResponseEntity.ok(order);
+    }
+
+    /**
      * Sipariş sil
      * DELETE /orders/{id}
      */

@@ -9,7 +9,8 @@ import '../../../../core/widgets/location_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 
 class ShopsPage extends StatefulWidget {
-  const ShopsPage({super.key});
+  final String? initialCity;
+  const ShopsPage({super.key, this.initialCity});
 
   @override
   State<ShopsPage> createState() => _ShopsPageState();
@@ -22,6 +23,7 @@ class _ShopsPageState extends State<ShopsPage> {
   final ApiService _apiService = ApiService();
   String _selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
+  String? _initialCity;
   
   // Location filter state
   bool _useLocationFilter = false;
@@ -34,6 +36,7 @@ class _ShopsPageState extends State<ShopsPage> {
   @override
   void initState() {
     super.initState();
+    _initialCity = widget.initialCity;
     _loadShops();
   }
 
@@ -73,11 +76,19 @@ class _ShopsPageState extends State<ShopsPage> {
         fetchedShops = await _apiService.getShops(
           category: category == 'All' ? null : category,
           search: search,
+          city: _initialCity,
         );
       }
       
       setState(() {
-        _shops = fetchedShops;
+        // If initial city provided, prefer city match; else fallback to all
+        if (_initialCity != null) {
+          final city = _initialCity!.toLowerCase();
+          final filtered = fetchedShops.where((s) => (s.city ?? '').toLowerCase().contains(city)).toList();
+          _shops = filtered.isNotEmpty ? filtered : fetchedShops;
+        } else {
+          _shops = fetchedShops;
+        }
         _isLoading = false;
       });
     } catch (e) {

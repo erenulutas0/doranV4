@@ -90,11 +90,15 @@ class AppRouter {
       ),
       GoRoute(
         path: '/shops',
-        builder: (context, state) => const ShopsPage(),
+        builder: (context, state) => ShopsPage(
+          initialCity: state.uri.queryParameters['city'],
+        ),
       ),
       GoRoute(
         path: '/jobs',
-        builder: (context, state) => const JobsPage(),
+        builder: (context, state) => JobsPage(
+          initialCity: state.uri.queryParameters['city'],
+        ),
       ),
       GoRoute(
         path: '/own-products',
@@ -102,11 +106,15 @@ class AppRouter {
       ),
       GoRoute(
         path: '/entertainment',
-        builder: (context, state) => const EntertainmentPage(),
+        builder: (context, state) => EntertainmentPage(
+          initialCity: state.uri.queryParameters['city'],
+        ),
       ),
       GoRoute(
         path: '/hobby-groups',
-        builder: (context, state) => const HobbyGroupsPage(),
+        builder: (context, state) => HobbyGroupsPage(
+          initialCity: state.uri.queryParameters['city'],
+        ),
       ),
     ],
   );

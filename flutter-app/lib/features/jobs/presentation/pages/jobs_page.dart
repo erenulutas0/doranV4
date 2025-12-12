@@ -9,7 +9,8 @@ import '../../../../core/widgets/location_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 
 class JobsPage extends StatefulWidget {
-  const JobsPage({super.key});
+  final String? initialCity;
+  const JobsPage({super.key, this.initialCity});
 
   @override
   State<JobsPage> createState() => _JobsPageState();
@@ -23,6 +24,7 @@ class _JobsPageState extends State<JobsPage> {
   String? _selectedCategory;
   String? _selectedJobType;
   bool? _isRemote;
+  String? _initialCity;
   final TextEditingController _searchController = TextEditingController();
   final List<String> _categories = ['All', 'Technology', 'Marketing', 'Sales', 'Design', 'Finance', 'Healthcare', 'Education', 'Other'];
   final List<String> _jobTypes = ['All', 'FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'REMOTE'];
@@ -36,6 +38,7 @@ class _JobsPageState extends State<JobsPage> {
   @override
   void initState() {
     super.initState();
+    _initialCity = widget.initialCity;
     _loadJobs();
   }
 
@@ -86,11 +89,21 @@ class _JobsPageState extends State<JobsPage> {
           jobType: _selectedJobType == 'All' ? null : _selectedJobType,
           remote: _isRemote,
           search: _searchController.text.isEmpty ? null : _searchController.text,
+          city: _initialCity,
         );
       }
       
       setState(() {
-        _jobs = jobs;
+        if (_initialCity != null) {
+          final city = _initialCity!.toLowerCase();
+          final filtered = jobs.where((j) {
+            final loc = (j.city ?? j.location ?? '').toLowerCase();
+            return loc.contains(city);
+          }).toList();
+          _jobs = filtered.isNotEmpty ? filtered : jobs;
+        } else {
+          _jobs = jobs;
+        }
         _isLoading = false;
       });
     } catch (e) {

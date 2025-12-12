@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/services/location_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,6 +36,12 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (success && mounted) {
+        // Ask location once for authenticated users
+        final prompted = await LocationService.getAuthPromptedOnce();
+        if (!prompted && mounted) {
+          await _promptLocationOnce();
+          await LocationService.setAuthPromptedOnce();
+        }
         context.go('/explore');
       }
       if (mounted) {
@@ -48,6 +55,11 @@ class _LoginPageState extends State<LoginPage> {
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.loginWithGoogle();
     if (success && mounted) {
+      final prompted = await LocationService.getAuthPromptedOnce();
+      if (!prompted && mounted) {
+        await _promptLocationOnce();
+        await LocationService.setAuthPromptedOnce();
+      }
       context.go('/explore');
     }
     if (mounted) {
@@ -60,6 +72,11 @@ class _LoginPageState extends State<LoginPage> {
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.loginWithApple();
     if (success && mounted) {
+      final prompted = await LocationService.getAuthPromptedOnce();
+      if (!prompted && mounted) {
+        await _promptLocationOnce();
+        await LocationService.setAuthPromptedOnce();
+      }
       context.go('/explore');
     }
     if (mounted) {
@@ -79,11 +96,71 @@ class _LoginPageState extends State<LoginPage> {
       final authProvider = context.read<AuthProvider>();
       final success = await authProvider.loginWithSMS(phoneNumber);
       if (success && mounted) {
-                  context.go('/explore');
+        final prompted = await LocationService.getAuthPromptedOnce();
+        if (!prompted && mounted) {
+          await _promptLocationOnce();
+          await LocationService.setAuthPromptedOnce();
+        }
+        context.go('/explore');
       }
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _promptLocationOnce() async {
+    final allow = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: const Color(0xFF121212),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Konumunu paylaşmak ister misin?',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Yakın mağazalar ve içerikleri daha doğru göstermek için kullanırız.',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Şimdi değil'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFCCFF00),
+                        foregroundColor: Colors.black,
+                      ),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('İzin ver'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (allow == true) {
+      await LocationService.getFast(requestPermission: true);
     }
   }
 

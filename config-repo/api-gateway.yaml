@@ -66,6 +66,10 @@ rate-limiter:
     replenish: 30
     burst: 60
     tokens: 1
+  search:
+    replenish: 40
+    burst: 80
+    tokens: 1
   order:
     replenish: 15
     burst: 30

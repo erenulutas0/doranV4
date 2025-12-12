@@ -75,6 +75,25 @@ spring:
                 name: productServiceCircuitBreaker
                 fallbackUri: forward:/fallback/product
         
+        # Search Service route
+        - id: search-service
+          uri: lb://search-service
+          predicates:
+            - Path=/api/search/**
+          filters:
+            - StripPrefix=1
+            - AddResponseHeader=Cache-Control, public, max-age=30
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${rate-limiter.search.replenish:30}
+                redis-rate-limiter.burstCapacity: ${rate-limiter.search.burst:60}
+                redis-rate-limiter.requestedTokens: ${rate-limiter.search.tokens:1}
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: searchServiceCircuitBreaker
+                fallbackUri: forward:/fallback
+        
         # Order Service route
         - id: order-service
           uri: lb://order-service

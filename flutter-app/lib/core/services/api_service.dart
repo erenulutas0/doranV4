@@ -8,12 +8,15 @@ import '../models/shop_model.dart';
 import '../models/job_model.dart';
 import '../models/venue_model.dart';
 import '../models/hobby_group_model.dart';
+import 'rum_logger.dart';
 
 class ApiService {
   static const String baseUrl = 'http://localhost:8080/api';
   static const String baseUrlV1 = '$baseUrl/v1';
   
   Future<List<Product>> getProducts() async {
+    final stopwatch = Stopwatch()..start();
+    int? status;
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/products'),
@@ -24,9 +27,17 @@ class ApiService {
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
+          stopwatch.stop();
+          RumLogger.logApi(
+            name: 'getProducts',
+            durationMs: stopwatch.elapsedMilliseconds,
+            statusCode: status,
+            error: 'timeout',
+          );
           throw Exception('API request timeout. Check if Product Service is running on http://localhost:8082');
         },
       );
+      status = response.statusCode;
 
       // Response body kontrolü
       final responseBody = response.body.trim();
@@ -39,18 +50,59 @@ class ApiService {
       if (response.statusCode == 200) {
         try {
           final List<dynamic> data = json.decode(responseBody);
+          stopwatch.stop();
+          RumLogger.logApi(
+            name: 'getProducts',
+            durationMs: stopwatch.elapsedMilliseconds,
+            statusCode: status,
+          );
           return data.map((json) => Product.fromJson(json)).toList();
         } catch (e) {
+          stopwatch.stop();
+          RumLogger.logApi(
+            name: 'getProducts',
+            durationMs: stopwatch.elapsedMilliseconds,
+            statusCode: status,
+            error: 'parse:${e.toString()}',
+          );
           throw Exception('Failed to parse JSON response: $e\nResponse body: ${responseBody.substring(0, 500)}');
         }
       } else {
+        stopwatch.stop();
+        RumLogger.logApi(
+          name: 'getProducts',
+          durationMs: stopwatch.elapsedMilliseconds,
+          statusCode: status,
+          error: 'http_${response.statusCode}',
+        );
         throw Exception('Failed to load products: HTTP ${response.statusCode}\nResponse: ${responseBody.substring(0, responseBody.length > 500 ? 500 : responseBody.length)}');
       }
     } on http.ClientException catch (e) {
+      stopwatch.stop();
+      RumLogger.logApi(
+        name: 'getProducts',
+        durationMs: stopwatch.elapsedMilliseconds,
+        statusCode: status,
+        error: 'client:${e.toString()}',
+      );
       throw Exception('Network error: Unable to connect to API Gateway at $baseUrl\n\nPlease check:\n1. API Gateway is running (docker-compose ps)\n2. API Gateway is accessible at http://localhost:8080\n3. No firewall blocking the connection\n\nError: $e');
     } on FormatException catch (e) {
+      stopwatch.stop();
+      RumLogger.logApi(
+        name: 'getProducts',
+        durationMs: stopwatch.elapsedMilliseconds,
+        statusCode: status,
+        error: 'format:${e.toString()}',
+      );
       throw Exception('Invalid JSON response from API.\n\nThis usually means:\n1. API Gateway returned HTML error page\n2. API Gateway is not properly configured\n3. Service is down\n\nError: $e');
     } catch (e) {
+      stopwatch.stop();
+      RumLogger.logApi(
+        name: 'getProducts',
+        durationMs: stopwatch.elapsedMilliseconds,
+        statusCode: status,
+        error: e.toString(),
+      );
       throw Exception('Error fetching products: $e');
     }
   }

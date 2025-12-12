@@ -10,7 +10,8 @@ import 'package:latlong2/latlong.dart';
 
 class ShopsPage extends StatefulWidget {
   final String? initialCity;
-  const ShopsPage({super.key, this.initialCity});
+  final String? from;
+  const ShopsPage({super.key, this.initialCity, this.from});
 
   @override
   State<ShopsPage> createState() => _ShopsPageState();
@@ -287,7 +288,22 @@ class _ShopsPageState extends State<ShopsPage> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
-          onPressed: () => context.go('/explore'),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              // Navigate based on where we came from
+              final from = widget.from;
+              if (from == 'home') {
+                context.go('/home');
+              } else if (from == 'explore') {
+                context.go('/explore');
+              } else {
+                // Default to home if no source specified
+                context.go('/home');
+              }
+            }
+          },
         ),
         title: Text(
           'Shops',

@@ -4,15 +4,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.client.elc.NativeQuery;
-import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.Criteria;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,15 +36,15 @@ public class ProductSearchService {
         if (query == null || query.isBlank()) {
             return Collections.emptyList();
         }
-        NativeQuery searchQuery = new NativeQueryBuilder()
-                .withQuery(QueryBuilders.multiMatchQuery(query)
-                        .field("name", 3f)
-                        .field("description")
-                        .field("category")
-                        .field("brand")
-                        .type(MultiMatchQueryBuilder.Type.BEST_FIELDS))
-                .withPageable(PageRequest.of(0, size))
-                .build();
+        
+        // Use CriteriaQuery for Spring Data Elasticsearch 5.x
+        Criteria criteria = new Criteria("name").contains(query)
+                .or(new Criteria("description").contains(query))
+                .or(new Criteria("category").contains(query))
+                .or(new Criteria("brand").contains(query));
+        
+        Query searchQuery = new CriteriaQuery(criteria)
+                .setPageable(PageRequest.of(0, size));
 
         SearchHits<ProductDocument> hits = operations.search(searchQuery, ProductDocument.class);
         return hits.getSearchHits().stream()

@@ -155,7 +155,7 @@ class _ExploreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () => context.go(item.route),
+      onTap: () => context.go('${item.route}?from=explore'),
       child: Container(
         decoration: BoxDecoration(
           color: cardBg,

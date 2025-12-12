@@ -12,7 +12,7 @@
 
     <artifactId>search-service</artifactId>
     <name>Search Service</name>
-    <description>Search & discovery microservice backed by Elasticsearch</description>
+    <description>Search &amp; discovery microservice backed by Elasticsearch</description>
 
     <dependencies>
         <dependency>

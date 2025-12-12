@@ -10,7 +10,8 @@ import 'package:latlong2/latlong.dart';
 
 class HobbyGroupsPage extends StatefulWidget {
   final String? initialCity;
-  const HobbyGroupsPage({super.key, this.initialCity});
+  final String? from;
+  const HobbyGroupsPage({super.key, this.initialCity, this.from});
 
   @override
   State<HobbyGroupsPage> createState() => _HobbyGroupsPageState();
@@ -240,7 +241,22 @@ class _HobbyGroupsPageState extends State<HobbyGroupsPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
-          onPressed: () => context.go('/explore'),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              // Navigate based on where we came from
+              final from = widget.from;
+              if (from == 'home') {
+                context.go('/home');
+              } else if (from == 'explore') {
+                context.go('/explore');
+              } else {
+                // Default to home if no source specified
+                context.go('/home');
+              }
+            }
+          },
         ),
         title: Text(
           'Hobi Grupları',

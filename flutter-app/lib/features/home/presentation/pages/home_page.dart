@@ -381,19 +381,26 @@ class _HomePageState extends State<HomePage> {
                     child: Center(
                       child: TextButton(
                         onPressed: () {
-                          final cityParam = _detectedCity != null ? '?city=${Uri.encodeComponent(_detectedCity!)}' : '';
+                          final params = <String, String>{'from': 'home'};
+                          if (_detectedCity != null) {
+                            params['city'] = _detectedCity!;
+                          }
+                          final queryString = params.entries
+                              .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+                              .join('&');
+                          final queryParam = queryString.isNotEmpty ? '?$queryString' : '';
                           switch (_selectedNearby) {
                             case _NearbyKind.shops:
-                              context.go('/shops$cityParam');
+                              context.go('/shops$queryParam');
                               break;
                             case _NearbyKind.jobs:
-                              context.go('/jobs$cityParam');
+                              context.go('/jobs$queryParam');
                               break;
                             case _NearbyKind.hobby:
-                              context.go('/hobby-groups$cityParam');
+                              context.go('/hobby-groups$queryParam');
                               break;
                             case _NearbyKind.venues:
-                              context.go('/entertainment$cityParam');
+                              context.go('/entertainment$queryParam');
                               break;
                           }
                         },

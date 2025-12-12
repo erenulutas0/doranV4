@@ -9,7 +9,8 @@ import 'package:latlong2/latlong.dart';
 
 class EntertainmentPage extends StatefulWidget {
   final String? initialCity;
-  const EntertainmentPage({super.key, this.initialCity});
+  final String? from;
+  const EntertainmentPage({super.key, this.initialCity, this.from});
 
   @override
   State<EntertainmentPage> createState() => _EntertainmentPageState();
@@ -298,7 +299,22 @@ class _EntertainmentPageState extends State<EntertainmentPage> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
-          onPressed: () => context.go('/explore'),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              // Navigate based on where we came from
+              final from = widget.from;
+              if (from == 'home') {
+                context.go('/home');
+              } else if (from == 'explore') {
+                context.go('/explore');
+              } else {
+                // Default to home if no source specified
+                context.go('/home');
+              }
+            }
+          },
         ),
         title: Text(
           'Mekanlar',

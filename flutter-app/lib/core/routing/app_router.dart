@@ -92,12 +92,14 @@ class AppRouter {
         path: '/shops',
         builder: (context, state) => ShopsPage(
           initialCity: state.uri.queryParameters['city'],
+          from: state.uri.queryParameters['from'],
         ),
       ),
       GoRoute(
         path: '/jobs',
         builder: (context, state) => JobsPage(
           initialCity: state.uri.queryParameters['city'],
+          from: state.uri.queryParameters['from'],
         ),
       ),
       GoRoute(
@@ -108,12 +110,14 @@ class AppRouter {
         path: '/entertainment',
         builder: (context, state) => EntertainmentPage(
           initialCity: state.uri.queryParameters['city'],
+          from: state.uri.queryParameters['from'],
         ),
       ),
       GoRoute(
         path: '/hobby-groups',
         builder: (context, state) => HobbyGroupsPage(
           initialCity: state.uri.queryParameters['city'],
+          from: state.uri.queryParameters['from'],
         ),
       ),
     ],

@@ -26,7 +26,7 @@ class ActionButtons extends StatelessWidget {
                   accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /shops');
-                    context.push('/shops');
+                    context.go('/shops?from=home');
                   },
                 ),
               ),
@@ -39,7 +39,7 @@ class ActionButtons extends StatelessWidget {
                   accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /jobs');
-                    context.push('/jobs');
+                    context.go('/jobs?from=home');
                   },
                 ),
               ),
@@ -75,7 +75,7 @@ class ActionButtons extends StatelessWidget {
                   accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /entertainment');
-                    context.push('/entertainment');
+                    context.go('/entertainment?from=home');
                   },
                 ),
               ),
@@ -88,7 +88,7 @@ class ActionButtons extends StatelessWidget {
                   accentColor: const Color(0xFFCCFF00),
                   onTap: () {
                     debugPrint('Navigating to /hobby-groups');
-                    context.push('/hobby-groups');
+                    context.go('/hobby-groups?from=home');
                   },
                 ),
               ),
